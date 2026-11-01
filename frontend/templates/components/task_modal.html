@@ -1,0 +1,88 @@
+<!-- Add / Edit Task Modal -->
+<div class="modal-overlay" id="taskModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 class="modal-title">Create New Task</h3>
+            <button class="modal-close" onclick="closeModal('taskModal')">&times;</button>
+        </div>
+        <form id="taskForm">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="taskTitle">Task Title *</label>
+                    <input type="text" id="taskTitle" name="title" class="form-input"
+                        placeholder="e.g. Implement Dijkstra's Algorithm" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="taskDescription">Description</label>
+                    <textarea id="taskDescription" name="description" class="form-textarea" rows="2"
+                        placeholder="Brief notes or requirements..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="form-label" for="taskSubject" style="margin-bottom: 0;">Course /
+                                Subject</label>
+                            <button type="button" id="quickAddSubjectBtn"
+                                style="font-size: 0.78rem; color: #818cf8; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; text-decoration: underline;">+
+                                New Course</button>
+                        </div>
+                        <select id="taskSubject" name="subject_id" class="form-select">
+                            <option value="">-- General / No Subject --</option>
+                            {% if subjects %}
+                            {% for s in subjects %}
+                            <option value="{{ s.id }}">{{ s.name }}{% if s.code %} ({{ s.code }}){% endif %}</option>
+                            {% endfor %}
+                            {% endif %}
+                            <option value="__create_new__" style="color: #818cf8; font-weight: 600;">➕ + Add Custom
+                                Course / Subject...</option>
+                        </select>
+                        <div id="quickSubjectPanel"
+                            style="display: none; margin-top: 8px; padding: 10px; background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                            <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 6px; font-weight: 600;">✨ Add
+                                Custom Subject / Exam</div>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="quickSubjectName" class="form-input"
+                                    placeholder="e.g. UPSC / General Studies"
+                                    style="font-size: 0.85rem; padding: 6px 10px;">
+                                <button type="button" id="quickSubjectSaveBtn" class="btn btn-primary btn-sm"
+                                    style="white-space: nowrap; padding: 6px 12px; font-size: 0.8rem;">Add</button>
+                                <button type="button" id="quickSubjectCancelBtn" class="btn btn-secondary btn-sm"
+                                    style="padding: 6px 10px; font-size: 0.8rem;">✕</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="taskPriority">Priority</label>
+                        <select id="taskPriority" name="priority" class="form-select">
+                            <option value="low">Low Priority</option>
+                            <option value="medium" selected>Medium Priority</option>
+                            <option value="high">High Priority</option>
+                            <option value="urgent">Urgent</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="taskDueDate">Due Date</label>
+                        <input type="date" id="taskDueDate" name="due_date" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="taskEstMinutes">Estimated Time (mins)</label>
+                        <input type="number" id="taskEstMinutes" name="estimated_minutes" class="form-input" value="45"
+                            min="5" step="5">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Task</button>
+            </div>
+        </form>
+    </div>
+</div>

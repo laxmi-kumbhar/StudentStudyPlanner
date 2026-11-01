@@ -1,0 +1,38 @@
+<!-- Add / Edit Subject Modal -->
+<div class="modal-overlay" id="newSubjectModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 class="modal-title">Add New Course / Subject</h3>
+            <button class="modal-close" onclick="closeModal('newSubjectModal')">&times;</button>
+        </div>
+        <form id="newSubjectForm">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="subjName">Subject Name *</label>
+                    <input type="text" id="subjName" name="name" class="form-input" placeholder="e.g. Distributed Operating Systems" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="subjCode">Course Code</label>
+                        <input type="text" id="subjCode" name="code" class="form-input" placeholder="e.g. CS-401">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="subjColor">Color Accent</label>
+                        <input type="color" id="subjColor" name="color" class="form-input" value="#6366f1" style="height: 48px; padding: 4px; cursor: pointer;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="subjTargetHours">Weekly Study Target (Hours)</label>
+                    <input type="number" id="subjTargetHours" name="target_hours_per_week" class="form-input" value="6.0" step="0.5" min="1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('newSubjectModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Subject</button>
+            </div>
+        </form>
+    </div>
+</div>

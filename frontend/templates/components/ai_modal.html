@@ -1,0 +1,111 @@
+<!-- Modal: Ask AI Study Assistant -->
+<div class="modal-overlay" id="aiModal">
+    <div class="modal-container ai-modal-container">
+        <!-- Header -->
+        <div class="modal-header ai-modal-header">
+            <div class="ai-header-left">
+                <div class="ai-avatar-badge">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="modal-title ai-title">StudyFlow AI Assistant</h3>
+                    <div class="ai-status-indicator">
+                        <span class="status-pulse-dot"></span>
+                        <span>Online &bull; Context Aware</span>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-header-controls">
+                <button type="button" class="btn-clear-chat" id="aiConfigToggleBtn" title="AI Model & Key Settings">
+                    <span>⚙️ Config</span>
+                </button>
+                <button type="button" class="btn-clear-chat" id="aiClearChatBtn" title="Clear chat history">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Clear</span>
+                </button>
+                <button type="button" class="modal-close" onclick="closeModal('aiModal')">&times;</button>
+            </div>
+        </div>
+
+        <!-- Collapsible Config Drawer -->
+        <div class="ai-config-drawer" id="aiConfigDrawer" style="display: none;">
+            <div class="ai-config-inner">
+                <div class="ai-config-row">
+                    <label for="aiProviderSelect"><strong>AI Model Engine:</strong></label>
+                    <select id="aiProviderSelect" class="form-select ai-provider-select">
+                        <option value="builtin">Built-in Conversational Assistant (No Key Needed)</option>
+                        <option value="gemini">Google Gemini 1.5/2.0 (Free API Key)</option>
+                        <option value="groq">Groq Llama 3.3 (Free & Ultra-Fast)</option>
+                        <option value="openai">OpenAI ChatGPT (GPT-4o mini)</option>
+                    </select>
+                </div>
+                <div class="ai-config-row" id="aiApiKeyRow" style="display: none;">
+                    <label for="aiApiKeyInput"><strong id="aiKeyLabel">API Key:</strong></label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="password" id="aiApiKeyInput" class="form-input" style="flex: 1;" placeholder="Paste API Key here..." autocomplete="off">
+                        <button type="button" class="btn btn-primary btn-sm" id="aiSaveKeyBtn">Save Key</button>
+                    </div>
+                    <div class="ai-key-hint" id="aiKeyHint"></div>
+                </div>
+                <div class="ai-config-status">
+                    <span id="aiActiveProviderBadge">Active: Built-in Conversational Assistant</span>
+                    <span style="color: #94a3b8; font-size: 0.7rem;">Works like ChatGPT</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body ai-modal-body">
+            <!-- Suggested Prompts Row -->
+            <div class="ai-quick-prompts" id="aiQuickPrompts">
+                <div class="quick-prompts-label">⚡ Quick Prompts:</div>
+                <div class="quick-chips-row">
+                    <button type="button" class="ai-prompt-chip" data-prompt="What should I study today based on my active tasks?">🎯 What should I study today?</button>
+                    <button type="button" class="ai-prompt-chip" data-prompt="Create an 8-hour daily study timetable with deep focus blocks">📅 8-Hour Timetable</button>
+                    <button type="button" class="ai-prompt-chip" data-prompt="Night owl study timetable from 9 PM to 2 AM">🦉 Night Owl Schedule</button>
+                    <button type="button" class="ai-prompt-chip" data-prompt="Timetable for a school student with classes from 8 AM to 2 PM">🎒 School Timetable</button>
+                    <button type="button" class="ai-prompt-chip" data-prompt="Create a 30-day study plan for Python and Data Structures">💻 Python & DSA Plan</button>
+                    <button type="button" class="ai-prompt-chip" data-prompt="How to prepare for Calculus and Mathematics exams">📐 Calculus Study Plan</button>
+                    <button type="button" class="ai-prompt-chip" data-prompt="Explain Photosynthesis and cell biology in simple terms">🔬 Photosynthesis Explainer</button>
+                    <button type="button" class="ai-prompt-chip" data-prompt="Explain Active Recall and the Feynman technique with examples">💡 Feynman Technique</button>
+                    <button type="button" class="ai-prompt-chip" data-prompt="How to stop procrastinating and start studying immediately?">⚡ Beat Procrastination</button>
+                </div>
+            </div>
+
+            <!-- Messages Stream -->
+            <div class="ai-chat-messages" id="aiChatMessages">
+                <div class="ai-message ai-message-bot">
+                    <div class="ai-msg-avatar">🤖</div>
+                    <div class="ai-msg-content">
+                        <p>Hi! 👋 I'm your <strong>StudyFlow AI Assistant</strong>.</p>
+                        <p>I can help you with <strong>all types of study timetables</strong> (daily hours, night owl, early bird, school/college, weekend, weekly), <strong>custom study plans for ANY subject</strong> (inside or outside your enrolled courses, e.g. Python, Calculus, Physics, UPSC, etc.), concept explanations, student doubts, and proven learning methods. Ask me anything!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer / Input Form -->
+        <div class="modal-footer ai-modal-footer">
+            <form id="aiChatForm" class="ai-input-form">
+                <div class="ai-input-wrapper">
+                    <textarea id="aiPromptInput" class="ai-textarea" rows="1" placeholder="Ask AI anything (e.g., 'What should I study today?')..." required></textarea>
+                    <button type="submit" class="btn btn-primary btn-ai-send" id="aiSendBtn" title="Send (Enter)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        <span>Send</span>
+                    </button>
+                </div>
+                <div class="ai-input-hint">
+                    <span>Press <kbd>Enter</kbd> to send &bull; <kbd>Shift + Enter</kbd> for new line</span>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

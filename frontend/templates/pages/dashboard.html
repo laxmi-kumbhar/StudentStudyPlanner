@@ -1,0 +1,228 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Dashboard - Student Study Planner{% endblock %}
+{% block header_title %}Student Dashboard{% endblock %}
+{% block header_description %}Welcome back, {{ user.username if user else 'Alex' }}! Here is your daily study breakdown.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- High-Level Stats Overview -->
+<div class="stats-grid">
+    <div class="stat-card" style="--card-accent: #6366f1;">
+        <div class="stat-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Total Study Time</span>
+            <span class="stat-value">{{ stats.total_hours }}h</span>
+            <span class="stat-subtext">{{ stats.week_hours }}h logged this week</span>
+        </div>
+    </div>
+
+    <div class="stat-card" style="--card-accent: #10b981;">
+        <div class="stat-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Tasks Completion</span>
+            <span class="stat-value">{{ stats.task_completion_rate }}%</span>
+            <span class="stat-subtext">{{ stats.completed_tasks }} of {{ stats.total_tasks }} tasks done</span>
+        </div>
+    </div>
+
+    <div class="stat-card" style="--card-accent: #f59e0b;">
+        <div class="stat-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Study Streak</span>
+            <span class="stat-value">{{ stats.study_streak }} Days</span>
+            <span class="stat-subtext">Keep up the daily consistency!</span>
+        </div>
+    </div>
+
+    <div class="stat-card" style="--card-accent: #ec4899;">
+        <div class="stat-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Active Courses</span>
+            <span class="stat-value">{{ stats.total_subjects }}</span>
+            <span class="stat-subtext">Enrolled subjects</span>
+        </div>
+    </div>
+</div>
+
+<!-- Main 2-Column Dashboard Grid -->
+<div class="dashboard-layout-grid">
+    <!-- Left Column: Focus Hero & Urgent Tasks -->
+    <div class="dashboard-left">
+        <!-- Pomodoro Quick Hero -->
+        <div class="hero-focus-card">
+            <div class="hero-text">
+                <h2>Ready for a deep focus session?</h2>
+                <p>Launch the Pomodoro focus room, eliminate distractions, and log your hours directly to your course stats.</p>
+                <div style="margin-top: 18px; display: flex; gap: 12px;">
+                    <a href="{{ url_for('views.timer') }}" class="btn btn-primary">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        Launch 25m Timer
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Priority To-Do Tasks -->
+        <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+                        <path d="M12 8v4l3 3"></path>
+                        <circle cx="12" cy="12" r="10"></circle>
+                    </svg>
+                    Priority Tasks Due Soon
+                </h2>
+                <a href="{{ url_for('views.tasks') }}" class="btn btn-outline btn-sm">View Kanban Board</a>
+            </div>
+
+            {% if urgent_tasks %}
+                <div class="quick-task-list">
+                    {% for task in urgent_tasks %}
+                        <div class="quick-task-item">
+                            <div class="quick-task-main">
+                                <button class="task-checkbox-custom" data-task-id="{{ task.id }}" title="Mark Completed"></button>
+                                <div>
+                                    <div class="quick-task-title">{{ task.title }}</div>
+                                    <div class="quick-task-due">
+                                        {% if task.subject_name %}
+                                            <span style="color: {{ task.subject_color }}; font-weight: 600;">{{ task.subject_name }}</span> &bull;
+                                        {% endif %}
+                                        {{ task.relative_due_date }}
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px;">No pending tasks due! Great job staying ahead.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right Column: Today's Lectures & Upcoming Exams -->
+    <div class="dashboard-right">
+        <!-- Today's Schedule -->
+        <div class="glass-card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                    </svg>
+                    Today's Classes
+                </h2>
+                <a href="{{ url_for('views.calendar') }}" class="btn btn-outline btn-sm">Timetable</a>
+            </div>
+
+            {% if today_classes %}
+                <div class="timeline-list">
+                    {% for slot in today_classes %}
+                        <div class="timeline-item" style="--item-color: {{ slot.subject_color }};">
+                            <div class="timeline-time">{{ slot.start_time }} - {{ slot.end_time }}</div>
+                            <div class="timeline-info">
+                                <div class="timeline-subject">{{ slot.subject_name }}</div>
+                                <div class="timeline-location">{{ slot.location or 'Room TBA' }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: var(--text-muted); font-size: 0.88rem; text-align: center; padding: 20px;">No classes scheduled for today.</p>
+            {% endif %}
+        </div>
+
+        <!-- Upcoming Exams -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-rose)" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    Upcoming Exams
+                </h2>
+            </div>
+
+            {% if stats.upcoming_exams %}
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    {% for exam in stats.upcoming_exams %}
+                        <div style="background: var(--bg-surface-elevated); padding: 12px 14px; border-radius: var(--radius-md); border-left: 3px solid {{ exam.subject_color }};">
+                            <div style="font-weight: 600; font-size: 0.9rem;">{{ exam.title }}</div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                                <span>{{ exam.subject_name }}</span>
+                                <span style="color: var(--accent-rose); font-weight: 600;">{{ exam.exam_date[:10] }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 16px;">No upcoming exams scheduled.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Milestones & Badges Showcase -->
+<div class="glass-card" style="margin-top: 24px;">
+    <div class="card-header">
+        <h2 class="card-title">
+            <span style="font-size: 1.15rem;">🏅</span>
+            Academic Milestones & Badges
+        </h2>
+        <span style="font-size: 0.78rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); padding: 3px 8px; border-radius: 9999px;">
+            Gamified Study Progress
+        </span>
+    </div>
+    <div class="badges-grid-layout">
+        {% for b in badges %}
+        <div class="badge-card-item {% if b.unlocked %}badge-item-unlocked{% else %}badge-item-locked{% endif %}">
+            <div class="badge-icon-wrap">{{ b.icon }}</div>
+            <div class="badge-content-wrap">
+                <div class="badge-title-row">
+                    <span class="badge-name">{{ b.title }}</span>
+                    <span class="badge-tier-tag tier-{{ b.tier|lower }}">{{ b.tier }}</span>
+                </div>
+                <p class="badge-desc-text">{{ b.desc }}</p>
+                <div class="badge-progress-wrap">
+                    <div class="badge-progress-bar">
+                        <div class="badge-progress-fill" style="width: {{ (b.progress / b.max * 100)|round }}%;"></div>
+                    </div>
+                    <span class="badge-status-label">{% if b.unlocked %}✓ Unlocked{% else %}{{ b.progress }}/{{ b.max }}{% endif %}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages/dashboard.js') }}"></script>
+{% endblock %}

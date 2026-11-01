@@ -1,0 +1,86 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Courses & Syllabus - Student Study Planner{% endblock %}
+{% block header_title %}Courses & Syllabus Management{% endblock %}
+{% block header_description %}Track your enrolled subjects, weekly study targets, and module completion checklists.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/subjects.css') }}">
+{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div>
+        <h2 style="font-size: 1.25rem; font-weight: 700;">Enrolled Courses ({{ subjects|length }})</h2>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('newSubjectModal')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Add New Course</span>
+    </button>
+</div>
+
+{% if subjects %}
+    <div class="subjects-grid">
+        {% for s in subjects %}
+            <div class="subject-card" style="--subj-color: {{ s.color }}; border-top: 4px solid {{ s.color }};">
+                <div class="subject-header-row">
+                    <div>
+                        {% if s.code %}
+                            <span class="subject-badge-pill">{{ s.code }}</span>
+                        {% endif %}
+                        <h3 class="subject-title">{{ s.name }}</h3>
+                    </div>
+                    <button class="btn-icon btn-outline btn-sm" onclick="deleteSubject({{ s.id }})" title="Delete Course">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Study Stats Summary -->
+                <div class="subject-meta-stats">
+                    <div class="subject-stat-item">
+                        <span class="subject-stat-label">Total Studied</span>
+                        <span class="subject-stat-val">{{ s.total_study_hours }}h</span>
+                    </div>
+                    <div class="subject-stat-item">
+                        <span class="subject-stat-label">Weekly Target</span>
+                        <span class="subject-stat-val">{{ s.target_hours_per_week }}h / wk</span>
+                    </div>
+                </div>
+
+                <!-- Syllabus Progress -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600;">
+                        <span style="color: var(--text-secondary);">Syllabus Progress</span>
+                        <span style="color: {{ s.color }};">{{ s.progress_pct }}% ({{ s.completed_topics }}/{{ s.total_topics }})</span>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-fill" style="width: {{ s.progress_pct }}%; background: {{ s.color }};"></div>
+                    </div>
+                </div>
+
+                <!-- Add Topic to Syllabus Form -->
+                <form class="add-topic-form" data-subject-id="{{ s.id }}" style="display: flex; gap: 8px;">
+                    <input type="text" name="title" class="form-input" placeholder="+ Add module or chapter topic..." style="padding: 8px 12px; font-size: 0.82rem;" required>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0 14px;">Add</button>
+                </form>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="glass-card" style="text-align: center; padding: 48px;">
+        <h3 style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">No courses added yet</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">Add your university or high school subjects to track syllabus and study sessions.</p>
+        <button class="btn btn-primary" onclick="openModal('newSubjectModal')">Create Your First Course</button>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages/subjects.js') }}"></script>
+{% endblock %}

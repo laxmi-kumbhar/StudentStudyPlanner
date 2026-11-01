@@ -1,0 +1,167 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Study Analytics - Student Study Planner{% endblock %}
+{% block header_title %}Study Analytics & Progress{% endblock %}
+{% block header_description %}Deep-dive into your weekly study trends, course distributions, and focus consistency.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/analytics.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Analytics Stat Cards -->
+<div class="stats-grid">
+    <div class="stat-card" style="--card-accent: #6366f1;">
+        <div class="stat-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Total Time Studied</span>
+            <span class="stat-value">{{ stats.total_hours }}h</span>
+            <span class="stat-subtext">{{ stats.total_sessions }} completed sessions</span>
+        </div>
+    </div>
+
+    <div class="stat-card" style="--card-accent: #06b6d4;">
+        <div class="stat-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">This Week's Hours</span>
+            <span class="stat-value">{{ stats.week_hours }}h</span>
+            <span class="stat-subtext">Since Monday</span>
+        </div>
+    </div>
+
+    <div class="stat-card" style="--card-accent: #f59e0b;">
+        <div class="stat-icon-wrapper">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path>
+            </svg>
+        </div>
+        <div class="stat-info">
+            <span class="stat-label">Consecutive Streak</span>
+            <span class="stat-value">{{ stats.study_streak }} Days</span>
+            <span class="stat-subtext">Active daily study</span>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="charts-grid-layout">
+    <!-- 7-Day Study Trend Chart -->
+    <div class="chart-card-wrapper">
+        <div class="card-header">
+            <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                Study Hours (Last 7 Days)
+            </h2>
+        </div>
+        <div class="chart-canvas-container">
+            <canvas id="weeklyStudyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Course Distribution Chart -->
+    <div class="chart-card-wrapper">
+        <div class="card-header">
+            <h2 class="card-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="2" x2="12" y2="12"></line>
+                    <line x1="12" y1="12" x2="20" y2="16"></line>
+                </svg>
+                Course Share
+            </h2>
+        </div>
+        <div class="chart-canvas-container">
+            <canvas id="subjectDistChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Session History Table -->
+<div class="glass-card">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 class="card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            Completed Focus Sessions
+        </h2>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Auto-logged from completed tasks &amp; focus timers</span>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table class="session-history-table" id="analyticsSessionsTable">
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Course</th>
+                    <th>Mode / Source</th>
+                    <th>Duration</th>
+                    <th>Task / Notes</th>
+                </tr>
+            </thead>
+            <tbody id="analyticsSessionsTableBody">
+                {% for sess in recent_sessions %}
+                    <tr>
+                        <td style="font-family: var(--font-mono); color: var(--text-secondary);">{{ sess.created_at[:16] }}</td>
+                        <td>
+                            <span style="font-weight: 600; color: {{ sess.subject_color or '#6366f1' }};">
+                                {{ sess.subject_name or 'General' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if sess.task_id or (sess.notes and sess.notes.startswith('Completed Task')) %}
+                            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.75rem; font-weight: 600;">
+                                ✓ Task Focus
+                            </span>
+                            {% elif sess.session_type == 'pomodoro' %}
+                            <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.75rem;">
+                                ⏱️ Pomodoro
+                            </span>
+                            {% elif sess.session_type == 'stopwatch' %}
+                            <span class="badge" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.3); font-size: 0.75rem;">
+                                ⏱️ Stopwatch
+                            </span>
+                            {% else %}
+                            <span class="badge" style="background: rgba(255,255,255,0.06); font-size: 0.75rem;">
+                                {{ sess.session_type }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 700; font-family: var(--font-mono); color: var(--text-primary);">
+                            {{ sess.duration_minutes }} mins
+                        </td>
+                        <td style="color: var(--text-secondary); font-size: 0.85rem;">
+                            {{ sess.notes or (sess.task_title if sess.task_title else '-') }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div id="analyticsEmptySessionsMsg" style="{% if recent_sessions %}display: none;{% else %}display: block;{% endif %} text-align: center; padding: 28px; color: var(--text-muted); font-size: 0.88rem;">
+            ✨ No focus sessions logged yet. Complete tasks or run focus timers to log study sessions!
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages/analytics.js') }}"></script>
+{% endblock %}

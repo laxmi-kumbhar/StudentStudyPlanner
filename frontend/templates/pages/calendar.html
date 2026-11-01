@@ -1,0 +1,279 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Timetable & Exams - Student Study Planner{% endblock %}
+{% block header_title %}Timetable & Exam Schedule{% endblock %}
+{% block header_description %}Manage your weekly lecture schedule and upcoming exam deadlines.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/calendar.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Tab Selector & Action Buttons -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+    <div class="calendar-tabs">
+        <button class="tab-btn active" data-target="timetableTab">Weekly Class Timetable</button>
+        <button class="tab-btn" data-target="examsTab">Exams & Deadlines</button>
+        <!-- 5 vs 7 Days Customizer Toggle -->
+        <div class="timetable-view-toggle" style="display: inline-flex; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 3px; gap: 4px; margin-left: 8px;">
+            <button type="button" class="view-days-btn active" id="btnDays5" onclick="setTimetableDays(5)" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; border: none; background: var(--primary); color: white; cursor: pointer; font-weight: 600; transition: all 0.2s;">5 Days (Mon-Fri)</button>
+            <button type="button" class="view-days-btn" id="btnDays7" onclick="setTimetableDays(7)" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-weight: 600; transition: all 0.2s;">7 Days (Full Week)</button>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button type="button" class="btn btn-outline btn-sm" onclick="printTimetableSchedule()" title="Print weekly timetable or save as clean PDF">🖨️ Print / Save PDF</button>
+        <button class="btn btn-secondary btn-sm" onclick="openAddTimetableModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Add Class Slot</span>
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openAddExamModal()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Schedule Exam</span>
+        </button>
+    </div>
+</div>
+
+<!-- Tab 1: Timetable Grid -->
+<div id="timetableTab" class="tab-content">
+    <div class="timetable-grid" id="timetableGrid">
+        {% set days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] %}
+        {% for day_idx in range(7) %}
+            <div class="day-column {% if day_idx >= 5 %}weekend-column{% endif %}" data-day-index="{{ day_idx }}">
+                <div class="day-header" style="{% if day_idx >= 5 %}color: #a5b4fc;{% endif %}">
+                    {{ days[day_idx] }}
+                    {% if day_idx >= 5 %}<span style="font-size: 0.7rem; font-weight: 500; opacity: 0.75; display: block;">Weekend</span>{% endif %}
+                </div>
+                <div class="day-slots-container">
+                    {% set found_slots = false %}
+                    {% for slot in timetable %}
+                        {% if slot.day_of_week == day_idx %}
+                            {% set found_slots = true %}
+                            <div class="class-slot-card" style="--slot-color: {{ slot.subject_color }};">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <span class="class-slot-time">{{ slot.start_time }} - {{ slot.end_time }}</span>
+                                    <div style="display: flex; gap: 4px; align-items: center;">
+                                        <button onclick="editTimetableSlot({{ slot.id }}, {{ slot.subject_id }}, {{ slot.day_of_week }}, '{{ slot.start_time }}', '{{ slot.end_time }}', '{{ (slot.location or '') | replace('\\', '\\\\') | replace('\'', '\\\'') }}')"
+                                            style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 0.8rem; padding: 2px 4px; transition: color 0.2s;" title="Edit Class">✏️</button>
+                                        <button onclick="deleteTimetableSlot({{ slot.id }})" style="background:none; border:none; color:var(--accent-rose); cursor:pointer; font-size: 1.1rem; line-height: 1; padding: 0 4px;" title="Delete Class">&times;</button>
+                                    </div>
+                                </div>
+                                <div class="class-slot-subject">{{ slot.subject_name }}</div>
+                                <div class="class-slot-location">{{ slot.location or 'TBA' }}</div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    {% if not found_slots %}
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 20px 0;">No classes</div>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Tab 2: Exams Grid -->
+<div id="examsTab" class="tab-content" style="display: none;">
+    {% if exams %}
+        <div class="exams-grid">
+            {% for ex in exams %}
+                <div class="exam-card" style="border-top: 4px solid {{ ex.subject_color }};">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <span class="exam-date-badge">{{ ex.exam_date[:10] }}</span>
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <button onclick="editExam({{ ex.id }}, {{ ex.subject_id }}, '{{ ex.title | replace('\\', '\\\\') | replace('\'', '\\\'') }}', '{{ ex.exam_date }}', '{{ (ex.room_or_link or '') | replace('\\', '\\\\') | replace('\'', '\\\'') }}', '{{ (ex.notes or '') | replace('\\', '\\\\') | replace('\'', '\\\'') }}', {{ ex.weight_percentage or 0 }})"
+                                style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 0.82rem; padding: 2px 4px;" title="Edit Exam">✏️</button>
+                            <button onclick="deleteExam({{ ex.id }})" style="background:none; border:none; color:var(--accent-rose); cursor:pointer; font-size: 1.1rem; line-height: 1; padding: 0 4px;" title="Delete Exam">&times;</button>
+                        </div>
+                    </div>
+
+                    <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">{{ ex.title }}</h4>
+                    <div style="font-size: 0.82rem; color: {{ ex.subject_color }}; font-weight: 600;">{{ ex.subject_name }}</div>
+
+                    {% if ex.room_or_link %}
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <span>{{ ex.room_or_link }}</span>
+                        </div>
+                    {% endif %}
+
+                    {% if ex.notes %}
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">{{ ex.notes }}</p>
+                    {% endif %}
+
+                    {% if ex.weight_percentage > 0 %}
+                        <div style="font-size: 0.75rem; color: var(--accent-amber); font-weight: 700; margin-top: 6px;">
+                            Weight: {{ ex.weight_percentage }}% of final grade
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="glass-card" style="text-align: center; padding: 48px;">
+            <h3>No exams scheduled</h3>
+            <p style="color: var(--text-secondary); margin-top: 6px;">Click the button above to add upcoming quizzes, midterms, or finals.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal: Add / Edit Timetable Slot -->
+<div class="modal-overlay" id="timetableModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 class="modal-title" id="timetableModalTitle">Add Class to Timetable</h3>
+            <button class="modal-close" onclick="closeModal('timetableModal')">&times;</button>
+        </div>
+        <form id="timetableForm">
+            <input type="hidden" id="ttSlotId" name="slot_id" value="">
+            <div class="modal-body">
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label" for="ttSubject" style="margin-bottom: 0;">Course / Subject *</label>
+                        <button type="button" id="quickAddTtSubjectBtn" style="font-size: 0.78rem; color: #818cf8; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; text-decoration: underline;">+ New Course</button>
+                    </div>
+                    <select id="ttSubject" name="subject_id" class="form-select" required>
+                        <option value="">-- Select Course / Subject --</option>
+                        {% for s in subjects %}
+                            <option value="{{ s.id }}">{{ s.name }}{% if s.code %} ({{ s.code }}){% endif %}</option>
+                        {% endfor %}
+                        <option value="__create_new__" style="color: #818cf8; font-weight: 600;">➕ + Add Custom Course / Subject...</option>
+                    </select>
+                    <div id="quickTtSubjectPanel" style="display: none; margin-top: 8px; padding: 12px; background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                        <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 8px; font-weight: 600;">✨ Add Custom Course / Subject</div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <input type="text" id="quickTtSubjectName" class="form-input" placeholder="Course Name (e.g. Operating Systems)" style="font-size: 0.85rem; padding: 6px 10px;">
+                            <div style="display: flex; gap: 8px;">
+                                <input type="text" id="quickTtSubjectCode" class="form-input" placeholder="Code (e.g. CS-208)" style="font-size: 0.82rem; padding: 6px 10px; flex: 1;">
+                                <input type="color" id="quickTtSubjectColor" class="form-input" value="#6366f1" title="Color accent" style="width: 48px; height: 36px; padding: 2px; cursor: pointer;">
+                                <button type="button" id="quickTtSubjectSaveBtn" class="btn btn-primary btn-sm" style="white-space: nowrap; padding: 6px 14px; font-size: 0.82rem;">Add & Select</button>
+                                <button type="button" id="quickTtSubjectCancelBtn" class="btn btn-secondary btn-sm" style="padding: 6px 10px; font-size: 0.82rem;">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="ttDay">Day of Week</label>
+                    <select id="ttDay" name="day_of_week" class="form-select">
+                        <option value="0">Monday</option>
+                        <option value="1">Tuesday</option>
+                        <option value="2">Wednesday</option>
+                        <option value="3">Thursday</option>
+                        <option value="4">Friday</option>
+                        <option value="5">Saturday</option>
+                        <option value="6">Sunday</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="ttStart">Start Time (HH:MM) *</label>
+                        <input type="time" id="ttStart" name="start_time" class="form-input" value="09:00" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="ttEnd">End Time (HH:MM) *</label>
+                        <input type="time" id="ttEnd" name="end_time" class="form-input" value="10:30" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="ttLocation">Location / Room</label>
+                    <input type="text" id="ttLocation" name="location" class="form-input" placeholder="e.g. Science Building - Room 302 / Online Zoom">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('timetableModal')">Cancel</button>
+                <button type="submit" id="ttSubmitBtn" class="btn btn-primary">Add to Schedule</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Add / Edit Exam -->
+<div class="modal-overlay" id="examModal">
+    <div class="modal-container">
+        <div class="modal-header">
+            <h3 class="modal-title" id="examModalTitle">Schedule New Exam</h3>
+            <button class="modal-close" onclick="closeModal('examModal')">&times;</button>
+        </div>
+        <form id="examForm">
+            <input type="hidden" id="examId" name="exam_id" value="">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="examTitle">Exam Title *</label>
+                    <input type="text" id="examTitle" name="title" class="form-input" placeholder="e.g. Midterm 1: Sorting & Tree Data Structures" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="form-label" for="examSubject" style="margin-bottom: 0;">Course *</label>
+                            <button type="button" id="quickAddExamSubjectBtn" style="font-size: 0.78rem; color: #818cf8; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; text-decoration: underline;">+ New Course</button>
+                        </div>
+                        <select id="examSubject" name="subject_id" class="form-select" required>
+                            <option value="">-- Select Course / Subject --</option>
+                            {% for s in subjects %}
+                                <option value="{{ s.id }}">{{ s.name }}{% if s.code %} ({{ s.code }}){% endif %}</option>
+                            {% endfor %}
+                            <option value="__create_new__" style="color: #818cf8; font-weight: 600;">➕ + Add Custom Course / Subject...</option>
+                        </select>
+                        <div id="quickExamSubjectPanel" style="display: none; margin-top: 8px; padding: 12px; background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                            <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 8px; font-weight: 600;">✨ Add Custom Course / Subject</div>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <input type="text" id="quickExamSubjectName" class="form-input" placeholder="Course Name (e.g. Data Structures)" style="font-size: 0.85rem; padding: 6px 10px;">
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" id="quickExamSubjectCode" class="form-input" placeholder="Code (e.g. CS-201)" style="font-size: 0.82rem; padding: 6px 10px; flex: 1;">
+                                    <input type="color" id="quickExamSubjectColor" class="form-input" value="#6366f1" title="Color accent" style="width: 48px; height: 36px; padding: 2px; cursor: pointer;">
+                                    <button type="button" id="quickExamSubjectSaveBtn" class="btn btn-primary btn-sm" style="white-space: nowrap; padding: 6px 14px; font-size: 0.82rem;">Add & Select</button>
+                                    <button type="button" id="quickExamSubjectCancelBtn" class="btn btn-secondary btn-sm" style="padding: 6px 10px; font-size: 0.82rem;">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="examDate">Exam Date & Time *</label>
+                        <input type="datetime-local" id="examDate" name="exam_date" class="form-input" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="examRoom">Room or Zoom Link</label>
+                        <input type="text" id="examRoom" name="room_or_link" class="form-input" placeholder="e.g. Auditorium Hall 2 / Online">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="examWeight">Grade Weight (%)</label>
+                        <input type="number" id="examWeight" name="weight_percentage" class="form-input" value="25" min="0" max="100">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="examNotes">Topics / Notes</label>
+                    <textarea id="examNotes" name="notes" class="form-textarea" rows="2" placeholder="Chapters 1 to 5, open book allowed..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('examModal')">Cancel</button>
+                <button type="submit" id="examSubmitBtn" class="btn btn-primary">Schedule Exam</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages/calendar.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="StudyFlow - Intelligent Student Study Planner">
+    <title>StudyFlow - Smart Student Study Planner</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="static/css/variables.css">
+    <link rel="stylesheet" href="static/css/base.css">
+    <link rel="stylesheet" href="static/css/components.css">
+    <link rel="stylesheet" href="static/css/pages/auth.css">
+    <link rel="stylesheet" href="static/css/style.css">
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body>
+    <!-- ================= AUTHENTICATION GATE ================= -->
+    <div id="authGateOverlay" class="auth-gate-overlay">
+        <div class="auth-card" style="margin: auto; max-width: 440px;">
+            <div class="auth-header">
+                <div class="auth-brand-logo">
+                    <div class="logo-icon-badge" style="width: 48px; height: 48px; margin: 0 auto;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h1 class="auth-title">Welcome to StudyFlow</h1>
+                <p class="auth-subtitle">Sign in to open your student planner & schedule</p>
+            </div>
+
+            <!-- Mode Switch Tabs -->
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab-btn active" id="tabBtnSignIn" onclick="switchGateTab('signin')">Sign In</button>
+                <button type="button" class="auth-tab-btn" id="tabBtnSignUp" onclick="switchGateTab('signup')">Create Account</button>
+            </div>
+
+            <!-- Google Sign In Button -->
+            <button type="button" class="btn-google" id="gateGoogleBtn" onclick="handleGateGoogleSignIn()">
+                <svg viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span id="googleBtnLabel">Sign in with Google</span>
+            </button>
+
+            <div class="auth-divider">
+                <span>or sign in with Gmail / Password</span>
+            </div>
+
+            <!-- Sign In Form -->
+            <form id="gateSignInForm" onsubmit="handleGateLogin(event)">
+                <div class="form-group">
+                    <label class="form-label" for="gateLoginEmail">Gmail ID or Email</label>
+                    <div class="password-input-wrapper">
+                        <input type="text" id="gateLoginEmail" class="form-input" placeholder="student@gmail.com" required autocomplete="username">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="gateLoginPassword">Password</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="gateLoginPassword" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                        <button type="button" class="password-toggle-btn" onclick="toggleGatePasswordVisibility('gateLoginPassword', this)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="gateSubmitLoginBtn" class="btn btn-primary" style="width: 100%; margin-top: 14px; padding: 12px;">
+                    <span>Sign In & Open Planner</span>
+                </button>
+            </form>
+
+            <!-- Sign Up Form (hidden by default) -->
+            <form id="gateSignUpForm" style="display: none;" onsubmit="handleGateRegister(event)">
+                <div class="form-group">
+                    <label class="form-label" for="gateRegUsername">Username *</label>
+                    <input type="text" id="gateRegUsername" class="form-input" placeholder="alex_student" required autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="gateRegEmail">Gmail / Email Address *</label>
+                    <input type="email" id="gateRegEmail" class="form-input" placeholder="student@gmail.com" required autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="gateRegPassword">Password *</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="gateRegPassword" class="form-input" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password">
+                        <button type="button" class="password-toggle-btn" onclick="toggleGatePasswordVisibility('gateRegPassword', this)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="gateRegConfirmPassword">Confirm Password *</label>
+                    <input type="password" id="gateRegConfirmPassword" class="form-input" placeholder="Re-enter password" required autocomplete="new-password">
+                </div>
+
+                <button type="submit" id="gateSubmitRegBtn" class="btn btn-primary" style="width: 100%; margin-top: 14px; padding: 12px;">
+                    <span>Create Account & Open Planner</span>
+                </button>
+            </form>
+
+            <!-- Fast Demo Logins -->
+            <div class="demo-logins-section">
+                <div class="demo-title">Quick Demo Sign-In</div>
+                <div class="demo-btn-group">
+                    <button type="button" class="btn-demo" onclick="handleGateQuickDemo('alex')">
+                        <span>⚡ Demo Student</span>
+                    </button>
+                    <button type="button" class="btn-demo btn-demo-google" onclick="handleGateQuickDemo('google')">
+                        <span>🔴 Google Demo</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-layout">
+        <!-- Sidebar Backdrop for Mobile -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- ================= SIDEBAR NAVIGATION ================= -->
+        <aside class="sidebar" id="sidebar">
+            <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close Navigation">&times;</button>
+            <a href="index.html" class="brand-logo">
+                <div class="logo-icon-badge">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="brand-title">StudyFlow</div>
+                    <div class="brand-subtitle">Smart Planner</div>
+                </div>
+            </a>
+
+            <nav class="nav-menu">
+                <div class="nav-section-title">Navigation</div>
+
+                <button class="nav-item nav-tab-item active" data-view="dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Dashboard</span>
+                </button>
+
+                <button class="nav-item nav-tab-item" data-view="subjects">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                    </svg>
+                    <span>Courses & Syllabus</span>
+                </button>
+
+                <button class="nav-item nav-tab-item" data-view="tasks">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    <span>Tasks & Kanban</span>
+                </button>
+
+                <button class="nav-item nav-tab-item" data-view="timer">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Focus Room (Timer)</span>
+                </button>
+
+                <button class="nav-item nav-tab-item" data-view="calendar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>Timetable & Exams</span>
+                </button>
+
+                <button class="nav-item nav-tab-item" data-view="analytics">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>Study Analytics</span>
+                </button>
+
+                <!-- Ask AI Assistant Button -->
+                <button type="button" class="nav-item" onclick="openModal('aiModal')"
+                    style="color: #c084fc; border: 1px dashed rgba(168, 85, 247, 0.4); background: rgba(168, 85, 247, 0.08); margin-top: 10px; cursor: pointer;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d946ef" stroke-width="2">
+                        <polygon
+                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                        </polygon>
+                    </svg>
+                    <span style="font-weight: 700;">✨ Ask AI Assistant</span>
+                </button>
+
+                <!-- AI Flashcards Button -->
+                <button type="button" class="nav-item" onclick="openFlashcardsModal()"
+                    style="color: #38bdf8; border: 1px dashed rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.08); margin-top: 6px; cursor: pointer;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    <span style="font-weight: 700;">🎴 AI Flashcards</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile-widget" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 10px; overflow: hidden; min-width: 0;">
+                        <div class="user-avatar" id="sidebarUserAvatar" style="background-color: #6366f1; flex-shrink: 0;">S</div>
+                        <div class="user-info" style="overflow: hidden;">
+                            <span class="user-name" id="sidebarUserName">Student</span>
+                            <span class="user-status" id="sidebarUserEmail" style="font-size: 0.72rem; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; display: block;">Active Student</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="handleStudyFlowSignOut()" class="btn-sidebar-logout" title="Sign Out" style="color: #f87171; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 7px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; margin-left: 6px;">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN CONTENT ================= -->
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="mobile-nav-toggle" aria-label="Toggle Navigation">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Student Study Planner</h1>
+                        <p class="page-description">Organize courses, tasks, focus sessions, and track study metrics.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <div class="badge"
+                        style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 6px 12px;">
+                        🔥 7 Day Streak
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="switchView('timer')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        <span>Focus Room</span>
+                    </button>
+                    <button class="btn btn-ai-sparkle btn-sm" onclick="openModal('aiModal')"
+                        title="Ask AI Study Assistant">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon
+                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                            </polygon>
+                        </svg>
+                        <span>✨ Ask AI</span>
+                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="openModal('taskModal')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>New Task</span>
+                    </button>
+                    <!-- Sign Out Button -->
+                    <button type="button" onclick="handleStudyFlowSignOut()" class="btn btn-outline btn-sm" title="Sign Out" style="color: #f87171; border-color: rgba(239, 68, 68, 0.35);">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Sign Out</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- VIEW 1: DASHBOARD -->
+                <section class="view-section active" id="view-dashboard">
+                    <div class="stats-grid">
+                        <div class="stat-card" style="--card-accent: #6366f1;">
+                            <div class="stat-icon-wrapper">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Study Time</span>
+                                <span class="stat-value" id="statTotalHours">8.6h</span>
+                                <span class="stat-subtext">Logged this week</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" style="--card-accent: #10b981;">
+                            <div class="stat-icon-wrapper">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Tasks Done</span>
+                                <span class="stat-value" id="statCompletionRate">37%</span>
+                                <span class="stat-subtext">3 of 8 completed</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" style="--card-accent: #f59e0b;">
+                            <div class="stat-icon-wrapper">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Daily Streak</span>
+                                <span class="stat-value" id="statStreak">7 Days</span>
+                                <span class="stat-subtext">Active daily focus</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" style="--card-accent: #ec4899;">
+                            <div class="stat-icon-wrapper">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Courses</span>
+                                <span class="stat-value" id="statCoursesCount">5</span>
+                                <span class="stat-subtext">Active enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-layout-grid">
+                        <div class="dashboard-left">
+                            <div class="hero-focus-card">
+                                <div class="hero-text">
+                                    <h2>Ready for a deep focus session?</h2>
+                                    <p>Launch the Pomodoro timer, eliminate distractions, and log your study hours
+                                        directly to SQLite.</p>
+                                    <div style="margin-top: 18px;">
+                                        <button class="btn btn-primary" onclick="switchView('timer')">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                            </svg>
+                                            Launch 25m Focus Session
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card">
+                                <div class="card-header">
+                                    <h2 class="card-title">Priority Tasks Due Soon</h2>
+                                    <button class="btn btn-outline btn-sm" onclick="switchView('tasks')">View
+                                        Kanban</button>
+                                </div>
+                                <div class="quick-task-list">
+                                    <div class="quick-task-item">
+                                        <div class="quick-task-main">
+                                            <button class="task-checkbox-custom" data-task-id="1"></button>
+                                            <div>
+                                                <div class="quick-task-title">Implement Red-Black Tree in C++</div>
+                                                <div class="quick-task-due"><span
+                                                        style="color: #6366f1; font-weight: 600;">Data Structures</span>
+                                                    &bull; Due in 2 days</div>
+                                            </div>
+                                        </div>
+                                        <span class="badge priority-urgent">Urgent</span>
+                                    </div>
+                                    <div class="quick-task-item">
+                                        <div class="quick-task-main">
+                                            <button class="task-checkbox-custom" data-task-id="2"></button>
+                                            <div>
+                                                <div class="quick-task-title">Train CNN Model on CIFAR-10</div>
+                                                <div class="quick-task-due"><span
+                                                        style="color: #ec4899; font-weight: 600;">Machine
+                                                        Learning</span> &bull; Due in 4 days</div>
+                                            </div>
+                                        </div>
+                                        <span class="badge priority-high">High</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-right">
+                            <div class="glass-card" style="margin-bottom: 24px;">
+                                <div class="card-header">
+                                    <h2 class="card-title">Today's Lectures</h2>
+                                    <button class="btn btn-outline btn-sm"
+                                        onclick="switchView('calendar')">Timetable</button>
+                                </div>
+                                <div class="timeline-list">
+                                    <div class="timeline-item" style="--item-color: #6366f1;">
+                                        <div class="timeline-time">09:00 - 10:30</div>
+                                        <div class="timeline-info">
+                                            <div class="timeline-subject">Data Structures & Algorithms</div>
+                                            <div class="timeline-location">Hall A - Room 201</div>
+                                        </div>
+                                    </div>
+                                    <div class="timeline-item" style="--item-color: #06b6d4;">
+                                        <div class="timeline-time">11:00 - 12:30</div>
+                                        <div class="timeline-info">
+                                            <div class="timeline-subject">Database Management Systems</div>
+                                            <div class="timeline-location">Lab 3</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card">
+                                <div class="card-header">
+                                    <h2 class="card-title">Upcoming Exams</h2>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <div
+                                        style="background: var(--bg-surface-elevated); padding: 12px 14px; border-radius: var(--radius-md); border-left: 3px solid #6366f1;">
+                                        <div style="font-weight: 600; font-size: 0.9rem;">Midterm Exam: Algorithms</div>
+                                        <div
+                                            style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                                            <span>Data Structures</span>
+                                            <span style="color: var(--accent-rose); font-weight: 600;">In 8 days</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 2: COURSES -->
+                <section class="view-section" id="view-subjects">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700;">Enrolled Courses</h2>
+                        <button class="btn btn-primary" onclick="openModal('newSubjectModal')">+ Add New Course</button>
+                    </div>
+                    <div class="subjects-grid" id="coursesGridContainer">
+                        <div class="subject-card" style="--subj-color: #6366f1; border-top: 4px solid #6366f1;">
+                            <div class="subject-header-row">
+                                <div>
+                                    <span class="subject-badge-pill">CS-201</span>
+                                    <h3 class="subject-title">Data Structures & Algorithms</h3>
+                                </div>
+                            </div>
+                            <div class="subject-meta-stats">
+                                <div class="subject-stat-item"><span class="subject-stat-label">Total
+                                        Studied</span><span class="subject-stat-val">2.5h</span></div>
+                                <div class="subject-stat-item"><span class="subject-stat-label">Target</span><span
+                                        class="subject-stat-val">8h / wk</span></div>
+                            </div>
+                            <div>
+                                <div
+                                    style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600;">
+                                    <span style="color: var(--text-secondary);">Syllabus Progress</span>
+                                    <span style="color: #6366f1;">60% (3/5)</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-fill" style="width: 60%; background: #6366f1;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 3: TASKS & KANBAN -->
+                <section class="view-section" id="view-tasks">
+                    <div class="tasks-toolbar">
+                        <h2 style="font-size: 1.25rem; font-weight: 700;">Assignment & Task Board</h2>
+                        <button class="btn btn-primary" onclick="openModal('taskModal')">+ Add New Task</button>
+                    </div>
+                    <div class="kanban-board">
+                        <div class="kanban-column">
+                            <div class="kanban-header">
+                                <div class="kanban-title"><span
+                                        style="width: 10px; height: 10px; border-radius: 50%; background: #6366f1;"></span><span>To
+                                        Do</span></div>
+                            </div>
+                            <div class="kanban-cards-container">
+                                <div class="task-card">
+                                    <div class="task-header"><span class="task-subject-tag"
+                                            style="--subj-tag-color: #6366f1;">Data Structures</span><span
+                                            class="badge priority-urgent">Urgent</span></div>
+                                    <h4 class="task-title">Implement Red-Black Tree in C++</h4>
+                                    <div class="task-footer">
+                                        <div class="task-due"><span>Due in 2 days</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kanban-column">
+                            <div class="kanban-header">
+                                <div class="kanban-title"><span
+                                        style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span><span>In
+                                        Progress</span></div>
+                            </div>
+                            <div class="kanban-cards-container">
+                                <div class="task-card" style="border-left: 3px solid #f59e0b;">
+                                    <div class="task-header"><span class="task-subject-tag"
+                                            style="--subj-tag-color: #06b6d4;">Database Systems</span><span
+                                            class="badge priority-high">High</span></div>
+                                    <h4 class="task-title">Design E-Commerce DB Schema</h4>
+                                    <div class="task-footer">
+                                        <div class="task-due"><span>Due Tomorrow</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kanban-column">
+                            <div class="kanban-header">
+                                <div class="kanban-title"><span
+                                        style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span><span>Completed</span>
+                                </div>
+                            </div>
+                            <div class="kanban-cards-container">
+                                <div class="task-card" style="opacity: 0.8; border-left: 3px solid #10b981;">
+                                    <div class="task-header"><span class="task-subject-tag"
+                                            style="--subj-tag-color: #6366f1;">Data Structures</span><span
+                                            class="badge priority-low">Done</span></div>
+                                    <h4 class="task-title" style="text-decoration: line-through;">Solve 10 LeetCode
+                                        Medium Graphs</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 4: TIMER -->
+                <section class="view-section" id="view-timer">
+                    <div class="timer-view-wrapper">
+                        <div class="timer-card-main">
+                            <div class="timer-modes">
+                                <button class="timer-mode-btn active" data-mode="pomodoro">Pomodoro (25m)</button>
+                                <button class="timer-mode-btn" data-mode="short_break">Short Break (5m)</button>
+                                <button class="timer-mode-btn" data-mode="long_break">Long Break (15m)</button>
+                                <button class="timer-mode-btn" data-mode="custom">Custom</button>
+                            </div>
+                            <div class="timer-circle-container">
+                                <svg class="timer-svg" viewBox="0 0 280 280">
+                                    <circle class="timer-svg-bg" cx="140" cy="140" r="130"></circle>
+                                    <circle class="timer-svg-progress" id="timerProgressRing" cx="140" cy="140" r="130">
+                                    </circle>
+                                </svg>
+                                <div class="timer-display-inner">
+                                    <div class="timer-countdown" id="timerCountdown">25:00</div>
+                                    <div class="timer-status-text" id="timerStatusText">Ready to Focus</div>
+                                </div>
+                            </div>
+                            <div class="timer-controls">
+                                <button class="btn btn-primary btn-timer-primary" id="timerToggleBtn">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                    </svg>
+                                    <span>Start Focus</span>
+                                </button>
+                                <button class="btn btn-secondary btn-icon" id="timerResetBtn"
+                                    style="width: 50px; height: 50px; border-radius: var(--radius-full);">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                        <path d="M3 3v5h5"></path>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Modern Ambient Sound Player -->
+                            <div class="ambient-sound-card">
+                                <div class="ambient-header">
+                                    <div class="ambient-title">
+                                        <span class="ambient-pulse-icon">🎧</span>
+                                        <span>Focus Ambient Audio</span>
+                                    </div>
+                                    <div class="ambient-volume-wrap">
+                                        <span style="font-size: 0.72rem; color: #94a3b8;">Volume</span>
+                                        <input type="range" id="ambientVolumeSlider" min="0" max="100" value="40"
+                                            class="ambient-slider" title="Adjust sound volume">
+                                    </div>
+                                </div>
+                                <div class="ambient-tracks-row">
+                                    <button type="button" class="ambient-track-btn" data-sound="rain"
+                                        title="Soft rainfall sound">🌧️ Rain</button>
+                                    <button type="button" class="ambient-track-btn" data-sound="ocean"
+                                        title="Relaxing ocean waves">🌊 Waves</button>
+                                    <button type="button" class="ambient-track-btn" data-sound="whitenoise"
+                                        title="Pink/White noise focus sound">⚪ White Noise</button>
+                                    <button type="button" class="ambient-track-btn" data-sound="lofi"
+                                        title="Warm Lo-Fi harmonic drone">☕ Lo-Fi Drone</button>
+                                    <button type="button" class="ambient-track-btn active-stop" data-sound="none"
+                                        title="Mute audio">🔇 Off</button>
+                                </div>
+                            </div>
+
+                            <div class="timer-attachments">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <label class="form-label" for="timerSubjectSelect" style="margin-bottom: 0;">Tag
+                                            to Course:</label>
+                                        <button type="button" id="quickAddTimerSubjectBtn"
+                                            style="font-size: 0.78rem; color: #818cf8; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; text-decoration: underline;">+
+                                            New Course</button>
+                                    </div>
+                                    <select id="timerSubjectSelect" class="form-select">
+                                        <option value="">-- Select Course --</option>
+                                        <option value="__create_new__" style="color: #818cf8; font-weight: 600;">➕ +
+                                            Add Custom Course / Subject...</option>
+                                    </select>
+                                    <div id="quickTimerSubjectPanel"
+                                        style="display: none; margin-top: 8px; padding: 10px; background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                                        <div
+                                            style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 6px; font-weight: 600;">
+                                            ✨ Add Custom Course / Exam</div>
+                                        <div style="display: flex; gap: 6px;">
+                                            <input type="text" id="quickTimerSubjectName" class="form-input"
+                                                placeholder="e.g. UPSC / General Studies"
+                                                style="font-size: 0.85rem; padding: 6px 10px;">
+                                            <button type="button" id="quickTimerSubjectSaveBtn"
+                                                class="btn btn-primary btn-sm"
+                                                style="white-space: nowrap; padding: 6px 12px; font-size: 0.8rem;">Add</button>
+                                            <button type="button" id="quickTimerSubjectCancelBtn"
+                                                class="btn btn-secondary btn-sm"
+                                                style="padding: 6px 10px; font-size: 0.8rem;">✕</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label class="form-label" for="timerNotesInput">Session Topic / Goal:</label>
+                                    <input type="text" id="timerNotesInput" class="form-input"
+                                        placeholder="e.g. Practicing dynamic programming problems">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 5: CALENDAR -->
+                <section class="view-section" id="view-calendar">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                        <div class="calendar-tabs"
+                            style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                            <button class="tab-btn active" data-target="timetableTab">Weekly Lecture Schedule</button>
+                            <button class="tab-btn" data-target="examsTab">Exams & Deadlines</button>
+                            <div class="timetable-view-toggle"
+                                style="display: inline-flex; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 3px; gap: 4px;">
+                                <button type="button" class="view-days-btn active" id="btnDays5"
+                                    onclick="setTimetableDays(5)"
+                                    style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; border: none; background: var(--primary); color: white; cursor: pointer; font-weight: 600;">5
+                                    Days (Mon-Fri)</button>
+                                <button type="button" class="view-days-btn" id="btnDays7" onclick="setTimetableDays(7)"
+                                    style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-weight: 600;">7
+                                    Days (Full Week)</button>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="printTimetableSchedule()"
+                                title="Print weekly timetable or save as clean PDF">🖨️ Print / Save PDF</button>
+                            <button class="btn btn-secondary btn-sm" onclick="openAddTimetableModal()">+ Add Class
+                                Slot</button>
+                            <button class="btn btn-primary btn-sm" onclick="openAddExamModal()">+ Schedule Exam</button>
+                        </div>
+                    </div>
+
+                    <div id="timetableTab" class="tab-content">
+                        <div class="timetable-grid" id="timetableGrid">
+                            <div class="day-column" data-day-index="0">
+                                <div class="day-header">Monday</div>
+                                <div class="day-slots-container">
+                                    <div class="class-slot-card" style="--slot-color: #6366f1;">
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                            <span class="class-slot-time">09:00 - 10:30</span>
+                                        </div>
+                                        <div class="class-slot-subject">Data Structures</div>
+                                        <div class="class-slot-location">Hall A - Room 201</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="day-column" data-day-index="1">
+                                <div class="day-header">Tuesday</div>
+                                <div class="day-slots-container">
+                                    <div class="class-slot-card" style="--slot-color: #ec4899;">
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                            <span class="class-slot-time">10:00 - 11:30</span>
+                                        </div>
+                                        <div class="class-slot-subject">Machine Learning</div>
+                                        <div class="class-slot-location">Tech Amphitheater</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="day-column" data-day-index="2">
+                                <div class="day-header">Wednesday</div>
+                                <div class="day-slots-container">
+                                    <div class="class-slot-card" style="--slot-color: #6366f1;">
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                            <span class="class-slot-time">09:00 - 10:30</span>
+                                        </div>
+                                        <div class="class-slot-subject">Data Structures</div>
+                                        <div class="class-slot-location">Hall A</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="day-column" data-day-index="3">
+                                <div class="day-header">Thursday</div>
+                                <div class="day-slots-container">
+                                    <div class="class-slot-card" style="--slot-color: #06b6d4;">
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                            <span class="class-slot-time">11:00 - 12:30</span>
+                                        </div>
+                                        <div class="class-slot-subject">Database Systems</div>
+                                        <div class="class-slot-location">Lab 3</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="day-column" data-day-index="4">
+                                <div class="day-header">Friday</div>
+                                <div class="day-slots-container">
+                                    <div class="class-slot-card" style="--slot-color: #10b981;">
+                                        <div
+                                            style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                            <span class="class-slot-time">10:00 - 11:30</span>
+                                        </div>
+                                        <div class="class-slot-subject">Operating Systems</div>
+                                        <div class="class-slot-location">Room 105</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="day-column weekend-column" data-day-index="5">
+                                <div class="day-header" style="color: #a5b4fc;">Saturday <span
+                                        style="font-size: 0.7rem; opacity: 0.75; display: block;">Weekend</span></div>
+                                <div class="day-slots-container">
+                                    <div
+                                        style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 20px 0;">
+                                        No classes</div>
+                                </div>
+                            </div>
+                            <div class="day-column weekend-column" data-day-index="6">
+                                <div class="day-header" style="color: #a5b4fc;">Sunday <span
+                                        style="font-size: 0.7rem; opacity: 0.75; display: block;">Weekend</span></div>
+                                <div class="day-slots-container">
+                                    <div
+                                        style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 20px 0;">
+                                        No classes</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="examsTab" class="tab-content" style="display: none;">
+                        <div class="exams-grid">
+                            <div class="glass-card" style="text-align: center; padding: 32px; grid-column: 1 / -1;">
+                                <h3>No upcoming exams scheduled</h3>
+                                <p style="color: var(--text-secondary); margin-top: 6px;">Click "+ Schedule Exam" to add
+                                    your quizzes, midterms, or finals.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 6: ANALYTICS -->
+                <section class="view-section" id="view-analytics">
+                    <div class="charts-grid-layout">
+                        <div class="chart-card-wrapper">
+                            <div class="card-header">
+                                <h2 class="card-title">Study Hours (Last 7 Days)</h2>
+                            </div>
+                            <div class="chart-canvas-container"><canvas id="weeklyStudyChart"></canvas></div>
+                        </div>
+                        <div class="chart-card-wrapper">
+                            <div class="card-header">
+                                <h2 class="card-title">Course Share</h2>
+                            </div>
+                            <div class="chart-canvas-container"><canvas id="subjectDistChart"></canvas></div>
+                        </div>
+                    </div>
+
+                    <!-- Completed Focus Sessions History Table -->
+                    <div class="glass-card">
+                        <div class="card-header"
+                            style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2 class="card-title">Completed Focus Sessions</h2>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Auto-logged from completed tasks
+                                &amp; focus timers</span>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="session-history-table" id="analyticsSessionsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Date &amp; Time</th>
+                                        <th>Course</th>
+                                        <th>Mode / Source</th>
+                                        <th>Duration</th>
+                                        <th>Task / Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analyticsSessionsTableBody">
+                                    <!-- Populated dynamically by app.js -->
+                                </tbody>
+                            </table>
+                            <div id="analyticsEmptySessionsMsg"
+                                style="display: none; text-align: center; padding: 28px; color: var(--text-muted); font-size: 0.88rem;">
+                                ✨ No focus sessions logged yet. Complete tasks or run focus timers to log study
+                                sessions!
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Create New Task</h3>
+                <button class="modal-close" onclick="closeModal('taskModal')">&times;</button>
+            </div>
+            <form id="taskForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="taskTitle">Task Title *</label>
+                        <input type="text" id="taskTitle" name="title" class="form-input"
+                            placeholder="e.g. UPSC Prelims Prep" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="taskDescription">Description</label>
+                        <textarea id="taskDescription" name="description" class="form-textarea" rows="2"
+                            placeholder="Brief notes or requirements..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label class="form-label" for="taskSubject" style="margin-bottom: 0;">Course /
+                                    Subject</label>
+                                <button type="button" id="quickAddSubjectBtn"
+                                    style="font-size: 0.78rem; color: #818cf8; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; text-decoration: underline;">+
+                                    New Course</button>
+                            </div>
+                            <select id="taskSubject" name="subject_id" class="form-select">
+                                <option value="">-- General / No Subject --</option>
+                                <option value="__create_new__" style="color: #818cf8; font-weight: 600;">➕ + Add Custom
+                                    Course / Subject...</option>
+                            </select>
+                            <div id="quickSubjectPanel"
+                                style="display: none; margin-top: 8px; padding: 10px; background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                                <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 6px; font-weight: 600;">✨
+                                    Add Custom Subject / Exam</div>
+                                <div style="display: flex; gap: 6px;">
+                                    <input type="text" id="quickSubjectName" class="form-input"
+                                        placeholder="e.g. UPSC / General Studies"
+                                        style="font-size: 0.85rem; padding: 6px 10px;">
+                                    <button type="button" id="quickSubjectSaveBtn" class="btn btn-primary btn-sm"
+                                        style="white-space: nowrap; padding: 6px 12px; font-size: 0.8rem;">Add</button>
+                                    <button type="button" id="quickSubjectCancelBtn" class="btn btn-secondary btn-sm"
+                                        style="padding: 6px 10px; font-size: 0.8rem;">✕</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="taskPriority">Priority</label>
+                            <select id="taskPriority" name="priority" class="form-select">
+                                <option value="low">Low Priority</option>
+                                <option value="medium" selected>Medium Priority</option>
+                                <option value="high">High Priority</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="taskDueDate">Due Date</label>
+                            <input type="date" id="taskDueDate" name="due_date" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="taskEstMinutes">Estimated Time (mins)</label>
+                            <input type="number" id="taskEstMinutes" name="estimated_minutes" class="form-input"
+                                value="45" min="5" step="5">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="newSubjectModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Course</h3><button class="modal-close"
+                    onclick="closeModal('newSubjectModal')">&times;</button>
+            </div>
+            <form id="newSubjectForm">
+                <div class="modal-body">
+                    <div class="form-group"><label class="form-label" for="subjName">Course Name *</label><input
+                            type="text" id="subjName" name="name" class="form-input" placeholder="e.g. Cloud Computing"
+                            required></div>
+                    <div class="form-group"><label class="form-label" for="subjCode">Code</label><input type="text"
+                            id="subjCode" name="code" class="form-input" placeholder="e.g. CS-405"></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary"
+                        onclick="closeModal('newSubjectModal')">Cancel</button><button type="submit"
+                        class="btn btn-primary">Save Course</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add / Edit Timetable Slot -->
+    <div class="modal-overlay" id="timetableModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="timetableModalTitle">Add Class to Timetable</h3>
+                <button class="modal-close" onclick="closeModal('timetableModal')">&times;</button>
+            </div>
+            <form id="timetableForm">
+                <input type="hidden" id="ttSlotId" name="slot_id" value="">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="form-label" for="ttSubject" style="margin-bottom: 0;">Course / Subject
+                                *</label>
+                            <button type="button" id="quickAddTtSubjectBtn"
+                                style="font-size: 0.78rem; color: #818cf8; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; text-decoration: underline;">+
+                                New Course</button>
+                        </div>
+                        <select id="ttSubject" name="subject_id" class="form-select" required>
+                            <option value="">-- Select Course / Subject --</option>
+                            <option value="__create_new__" style="color: #818cf8; font-weight: 600;">➕ + Add Custom
+                                Course / Subject...</option>
+                        </select>
+                        <div id="quickTtSubjectPanel"
+                            style="display: none; margin-top: 8px; padding: 12px; background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                            <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 8px; font-weight: 600;">
+                                ✨ Add Custom Course / Subject</div>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <input type="text" id="quickTtSubjectName" class="form-input"
+                                    placeholder="Course Name (e.g. Operating Systems)"
+                                    style="font-size: 0.85rem; padding: 6px 10px;">
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" id="quickTtSubjectCode" class="form-input"
+                                        placeholder="Code (e.g. CS-208)"
+                                        style="font-size: 0.82rem; padding: 6px 10px; flex: 1;">
+                                    <input type="color" id="quickTtSubjectColor" class="form-input" value="#6366f1"
+                                        title="Color accent"
+                                        style="width: 48px; height: 36px; padding: 2px; cursor: pointer;">
+                                    <button type="button" id="quickTtSubjectSaveBtn" class="btn btn-primary btn-sm"
+                                        style="white-space: nowrap; padding: 6px 14px; font-size: 0.82rem;">Add &
+                                        Select</button>
+                                    <button type="button" id="quickTtSubjectCancelBtn" class="btn btn-secondary btn-sm"
+                                        style="padding: 6px 10px; font-size: 0.82rem;">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ttDay">Day of Week</label>
+                        <select id="ttDay" name="day_of_week" class="form-select">
+                            <option value="0">Monday</option>
+                            <option value="1">Tuesday</option>
+                            <option value="2">Wednesday</option>
+                            <option value="3">Thursday</option>
+                            <option value="4">Friday</option>
+                            <option value="5">Saturday</option>
+                            <option value="6">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="ttStart">Start Time</label>
+                            <input type="time" id="ttStart" name="start_time" class="form-input" value="09:00" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="ttEnd">End Time</label>
+                            <input type="time" id="ttEnd" name="end_time" class="form-input" value="10:30" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ttLocation">Location / Room</label>
+                        <input type="text" id="ttLocation" name="location" class="form-input"
+                            placeholder="e.g. Science Hall 101 / Online Zoom">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('timetableModal')">Cancel</button>
+                    <button type="submit" id="ttSubmitBtn" class="btn btn-primary">Add to Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add / Edit Exam -->
+    <div class="modal-overlay" id="examModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="examModalTitle">Schedule New Exam</h3>
+                <button class="modal-close" onclick="closeModal('examModal')">&times;</button>
+            </div>
+            <form id="examForm">
+                <input type="hidden" id="examId" name="exam_id" value="">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="examTitle">Exam Title *</label>
+                        <input type="text" id="examTitle" name="title" class="form-input"
+                            placeholder="e.g. Midterm 1: Algorithms" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label class="form-label" for="examSubject" style="margin-bottom: 0;">Course *</label>
+                                <button type="button" id="quickAddExamSubjectBtn"
+                                    style="font-size: 0.78rem; color: #818cf8; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; text-decoration: underline;">+
+                                    New Course</button>
+                            </div>
+                            <select id="examSubject" name="subject_id" class="form-select" required>
+                                <option value="">-- Select Course / Subject --</option>
+                                <option value="__create_new__" style="color: #818cf8; font-weight: 600;">➕ + Add Custom
+                                    Course / Subject...</option>
+                            </select>
+                            <div id="quickExamSubjectPanel"
+                                style="display: none; margin-top: 8px; padding: 12px; background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                                <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 8px; font-weight: 600;">
+                                    ✨ Add Custom Course / Subject</div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <input type="text" id="quickExamSubjectName" class="form-input"
+                                        placeholder="Course Name (e.g. Data Structures)"
+                                        style="font-size: 0.85rem; padding: 6px 10px;">
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="quickExamSubjectCode" class="form-input"
+                                            placeholder="Code (e.g. CS-201)"
+                                            style="font-size: 0.82rem; padding: 6px 10px; flex: 1;">
+                                        <input type="color" id="quickExamSubjectColor" class="form-input"
+                                            value="#6366f1" title="Color accent"
+                                            style="width: 48px; height: 36px; padding: 2px; cursor: pointer;">
+                                        <button type="button" id="quickExamSubjectSaveBtn"
+                                            class="btn btn-primary btn-sm"
+                                            style="white-space: nowrap; padding: 6px 14px; font-size: 0.82rem;">Add &
+                                            Select</button>
+                                        <button type="button" id="quickExamSubjectCancelBtn"
+                                            class="btn btn-secondary btn-sm"
+                                            style="padding: 6px 10px; font-size: 0.82rem;">✕</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="examDate">Date & Time *</label>
+                            <input type="datetime-local" id="examDate" name="exam_date" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="examRoom">Location / Room</label>
+                            <input type="text" id="examRoom" name="room_or_link" class="form-input"
+                                placeholder="e.g. Auditorium Hall 2 / Online">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="examWeight">Grade Weight (%)</label>
+                            <input type="number" id="examWeight" name="weight_percentage" class="form-input" value="25"
+                                min="0" max="100">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="examNotes">Topics / Notes</label>
+                        <textarea id="examNotes" name="notes" class="form-textarea" rows="2"
+                            placeholder="e.g. Units 1-4, formula sheet allowed..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('examModal')">Cancel</button>
+                    <button type="submit" id="examSubmitBtn" class="btn btn-primary">Schedule Exam</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="customTimerModal">
+        <div class="modal-container" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3 class="modal-title">⏱️ Set Custom Focus Time</h3>
+                <button class="modal-close" onclick="closeModal('customTimerModal')">&times;</button>
+            </div>
+            <form id="customTimerForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="customTimerMinutesInput">Focus Duration (Minutes)</label>
+                        <input type="number" id="customTimerMinutesInput" class="form-input" min="1" max="240"
+                            value="45" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('customTimerModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Apply Timer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Ask AI Study Assistant -->
+    <div class="modal-overlay" id="aiModal">
+        <div class="modal-container ai-modal-container">
+            <div class="modal-header ai-modal-header">
+                <div class="ai-header-left">
+                    <div class="ai-avatar-badge">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon
+                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                            </polygon>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="modal-title ai-title">StudyFlow AI Assistant</h3>
+                        <div class="ai-status-indicator">
+                            <span class="status-pulse-dot"></span>
+                            <span>Online &bull; Context Aware</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ai-header-controls">
+                    <button type="button" class="btn-clear-chat" id="aiConfigToggleBtn" title="AI Model & Key Settings">
+                        <span>⚙️ Config</span>
+                    </button>
+                    <button type="button" class="btn-clear-chat" id="aiClearChatBtn" title="Clear chat history">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                            </path>
+                        </svg>
+                        <span>Clear</span>
+                    </button>
+                    <button type="button" class="modal-close" onclick="closeModal('aiModal')">&times;</button>
+                </div>
+            </div>
+
+            <!-- Collapsible Config Drawer -->
+            <div class="ai-config-drawer" id="aiConfigDrawer" style="display: none;">
+                <div class="ai-config-inner">
+                    <div class="ai-config-row">
+                        <label for="aiProviderSelect"><strong>AI Model Engine:</strong></label>
+                        <select id="aiProviderSelect" class="form-select ai-provider-select">
+                            <option value="builtin">Built-in Conversational Assistant (No Key Needed)</option>
+                            <option value="gemini">Google Gemini 1.5/2.0 (Free API Key)</option>
+                            <option value="groq">Groq Llama 3.3 (Free & Ultra-Fast)</option>
+                            <option value="openai">OpenAI ChatGPT (GPT-4o mini)</option>
+                        </select>
+                    </div>
+                    <div class="ai-config-row" id="aiApiKeyRow" style="display: none;">
+                        <label for="aiApiKeyInput"><strong id="aiKeyLabel">API Key:</strong></label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="password" id="aiApiKeyInput" class="form-input" style="flex: 1;"
+                                placeholder="Paste API Key here..." autocomplete="off">
+                            <button type="button" class="btn btn-primary btn-sm" id="aiSaveKeyBtn">Save Key</button>
+                        </div>
+                        <div class="ai-key-hint" id="aiKeyHint"></div>
+                    </div>
+                    <div class="ai-config-status">
+                        <span id="aiActiveProviderBadge">Active: Built-in Conversational Assistant</span>
+                        <span style="color: #94a3b8; font-size: 0.7rem;">Works like ChatGPT</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body ai-modal-body">
+                <div class="ai-quick-prompts" id="aiQuickPrompts">
+                    <div class="quick-prompts-label">⚡ Quick Prompts:</div>
+                    <div class="quick-chips-row">
+                        <button type="button" class="ai-prompt-chip"
+                            data-prompt="What should I study today based on my active tasks?">🎯 What should I study
+                            today?</button>
+                        <button type="button" class="ai-prompt-chip"
+                            data-prompt="Create an 8-hour daily study timetable with deep focus blocks">📅 8-Hour
+                            Timetable</button>
+                        <button type="button" class="ai-prompt-chip"
+                            data-prompt="Night owl study timetable from 9 PM to 2 AM">🦉 Night Owl Schedule</button>
+                        <button type="button" class="ai-prompt-chip"
+                            data-prompt="Timetable for a school student with classes from 8 AM to 2 PM">🎒 School
+                            Timetable</button>
+                        <button type="button" class="ai-prompt-chip"
+                            data-prompt="Create a 30-day study plan for Python and Data Structures">💻 Python & DSA
+                            Plan</button>
+                        <button type="button" class="ai-prompt-chip"
+                            data-prompt="How to prepare for Calculus and Mathematics exams">📐 Calculus Study
+                            Plan</button>
+                        <button type="button" class="ai-prompt-chip"
+                            data-prompt="Explain Photosynthesis and cell biology in simple terms">🔬 Photosynthesis
+                            Explainer</button>
+                        <button type="button" class="ai-prompt-chip"
+                            data-prompt="Explain Active Recall and the Feynman technique with examples">💡 Feynman
+                            Technique</button>
+                        <button type="button" class="ai-prompt-chip"
+                            data-prompt="How to stop procrastinating and start studying immediately?">⚡ Beat
+                            Procrastination</button>
+                    </div>
+                </div>
+                <div class="ai-chat-messages" id="aiChatMessages">
+                    <div class="ai-message ai-message-bot">
+                        <div class="ai-msg-avatar">🤖</div>
+                        <div class="ai-msg-content">
+                            <p>Hi! 👋 I'm your <strong>StudyFlow AI Assistant</strong>.</p>
+                            <p>I can help you with <strong>all types of study timetables</strong> (daily hours, night
+                                owl, early bird, school/college, weekend, weekly), <strong>custom study plans for ANY
+                                    subject</strong> (inside or outside your enrolled courses, e.g. Python, Calculus,
+                                Physics, UPSC, etc.), concept explanations, student doubts, and proven learning methods.
+                                Ask me anything!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer ai-modal-footer">
+                <form id="aiChatForm" class="ai-input-form">
+                    <div class="ai-input-wrapper">
+                        <textarea id="aiPromptInput" class="ai-textarea" rows="1"
+                            placeholder="Ask AI anything (e.g., 'What should I study today?')..." required></textarea>
+                        <button type="submit" class="btn btn-primary btn-ai-send" id="aiSendBtn" title="Send (Enter)">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                            <span>Send</span>
+                        </button>
+                    </div>
+                    <div class="ai-input-hint">
+                        <span>Press <kbd>Enter</kbd> to send &bull; <kbd>Shift + Enter</kbd> for new line</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Flashcards & Active Recall Modal -->
+    <div class="modal-overlay" id="flashcardsModal">
+        <div class="modal-container flashcards-modal-container">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="flashcard-avatar-badge">🎴</div>
+                    <div>
+                        <h3 class="modal-title" style="margin: 0; font-size: 1.1rem; color: #f8fafc;">AI Flashcards &
+                            Active Recall</h3>
+                        <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">Spaced repetition &
+                            self-testing powered by AI</div>
+                    </div>
+                </div>
+                <button class="modal-close" onclick="closeModal('flashcardsModal')">&times;</button>
+            </div>
+
+            <div class="modal-body flashcards-modal-body">
+                <!-- Topic Selector Bar -->
+                <div class="flashcard-controls-bar">
+                    <div style="flex: 1; display: flex; gap: 8px; flex-wrap: wrap;">
+                        <input type="text" id="flashcardCustomTopic" class="form-input"
+                            placeholder="Type any topic (e.g. Python, SQL, OS, DSA)..."
+                            style="flex: 1; min-width: 180px; font-size: 0.82rem; padding: 6px 10px;">
+                    </div>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnGenerateFlashcards"
+                        style="white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>⚡ Generate Deck</span>
+                    </button>
+                </div>
+
+                <!-- Flashcard Deck Progress Indicator -->
+                <div class="flashcard-meta-row">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="fcDifficultyBadge" class="badge"
+                            style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4);">Fundamental</span>
+                        <span id="fcTagBadge" style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">Data
+                            Structures</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span id="fcCounterText" style="font-size: 0.8rem; font-weight: 700; color: #f8fafc;">Card 1 of
+                            5</span>
+                    </div>
+                </div>
+
+                <div class="progress-container" style="height: 4px; margin: 6px 0 16px;">
+                    <div class="progress-fill" id="fcProgressBar"
+                        style="width: 20%; background: linear-gradient(90deg, #6366f1, #38bdf8);"></div>
+                </div>
+
+                <!-- 3D Interactive Flip Card Container -->
+                <div class="flashcard-perspective-wrapper">
+                    <div class="flashcard-card-3d" id="activeFlashcard" onclick="toggleFlashcardFlip()">
+                        <!-- Front Side (Question) -->
+                        <div class="flashcard-face flashcard-face-front">
+                            <div class="fc-side-label">QUESTION</div>
+                            <div class="fc-content-text" id="fcQuestionText">
+                                Loading high-yield revision flashcards...
+                            </div>
+                            <div class="fc-hint-action">
+                                <span>🔄 Click or Press Space to Flip</span>
+                            </div>
+                        </div>
+
+                        <!-- Back Side (Answer) -->
+                        <div class="flashcard-face flashcard-face-back">
+                            <div class="fc-side-label" style="color: #34d399;">ANSWER & KEY CONCEPT</div>
+                            <div class="fc-content-text" id="fcAnswerText">
+                                Click 'Flip' to see the answer.
+                            </div>
+                            <div class="fc-hint-action">
+                                <span>🔄 Click to Flip Back</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Navigation & Mastery Controls -->
+                <div class="flashcard-actions-bar">
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnPrevCard"
+                        onclick="navigateFlashcard(-1)" style="padding: 7px 14px;">
+                        ◀ Previous
+                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="toggleFlashcardFlip()"
+                            style="padding: 7px 16px; border-color: rgba(99, 102, 241, 0.4); color: #c7d2fe;">
+                            🔄 Flip Card
+                        </button>
+                        <button type="button" class="btn btn-sm" id="btnMarkMastered" onclick="markCardMastered()"
+                            style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 7px 14px;">
+                            ✓ Mastered
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnNextCard" onclick="navigateFlashcard(1)"
+                        style="padding: 7px 16px;">
+                        Next ▶
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile Navigation">
+        <button type="button" class="mobile-bottom-nav-item nav-tab-item active" data-view="dashboard" aria-label="Dashboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Home</span>
+        </button>
+        <button type="button" class="mobile-bottom-nav-item nav-tab-item" data-view="subjects" aria-label="Courses">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+            <span>Courses</span>
+        </button>
+        <button type="button" class="mobile-bottom-nav-item nav-tab-item mobile-nav-timer-item" data-view="timer" aria-label="Focus Room">
+            <div class="mobile-timer-icon-bubble">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+            </div>
+            <span>Focus</span>
+        </button>
+        <button type="button" class="mobile-bottom-nav-item nav-tab-item" data-view="tasks" aria-label="Tasks">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            <span>Tasks</span>
+        </button>
+        <button type="button" class="mobile-bottom-nav-item nav-tab-item" data-view="calendar" aria-label="Schedule">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Schedule</span>
+        </button>
+    </nav>
+
+    <!-- Floating AI Assistant Launcher -->
+    <button type="button" class="floating-ai-fab" id="floatingAiFab" onclick="openModal('aiModal')"
+        title="Ask StudyFlow AI Assistant">
+        <span style="font-size: 1.15rem;">✨</span>
+        <span>Ask AI</span>
+    </button>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="static/js/api.js"></script>
+    <script src="static/js/main.js"></script>
+    <script src="static/js/modules/timer.js"></script>
+    <script src="static/js/app.js"></script>
+    <script src="static/js/auth_gate.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,182 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Focus Room (Pomodoro) - Student Study Planner{% endblock %}
+{% block header_title %}Focus Room & Pomodoro Timer{% endblock %}
+{% block header_description %}Eliminate distractions, maintain deep focus intervals, and log your study hours directly
+to SQLite.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pages/timer.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="timer-view-wrapper">
+    <!-- Main Focus Card -->
+    <div class="timer-card-main">
+        <!-- Mode Pills -->
+        <div class="timer-modes">
+            <button class="timer-mode-btn active" data-mode="pomodoro">Pomodoro (25m)</button>
+            <button class="timer-mode-btn" data-mode="short_break">Short Break (5m)</button>
+            <button class="timer-mode-btn" data-mode="long_break">Long Break (15m)</button>
+            <button class="timer-mode-btn" data-mode="custom">Custom</button>
+        </div>
+
+        <!-- Circular SVG Timer -->
+        <div class="timer-circle-container">
+            <svg class="timer-svg" viewBox="0 0 280 280">
+                <circle class="timer-svg-bg" cx="140" cy="140" r="130"></circle>
+                <circle class="timer-svg-progress" id="timerProgressRing" cx="140" cy="140" r="130"></circle>
+            </svg>
+            <div class="timer-display-inner">
+                <div class="timer-countdown" id="timerCountdown">25:00</div>
+                <div class="timer-status-text" id="timerStatusText">Ready to Focus</div>
+            </div>
+        </div>
+
+        <!-- Timer Controls -->
+        <div class="timer-controls">
+            <button class="btn btn-primary btn-timer-primary" id="timerToggleBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span>Start Focus</span>
+            </button>
+            <button class="btn btn-secondary btn-icon" id="timerResetBtn" title="Reset Timer"
+                style="width: 50px; height: 50px; border-radius: var(--radius-full);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Modern Ambient Sound Player -->
+        <div class="ambient-sound-card">
+            <div class="ambient-header">
+                <div class="ambient-title">
+                    <span class="ambient-pulse-icon">🎧</span>
+                    <span>Focus Ambient Audio</span>
+                </div>
+                <div class="ambient-volume-wrap">
+                    <span style="font-size: 0.72rem; color: #94a3b8;">Volume</span>
+                    <input type="range" id="ambientVolumeSlider" min="0" max="100" value="40" class="ambient-slider" title="Adjust sound volume">
+                </div>
+            </div>
+            <div class="ambient-tracks-row">
+                <button type="button" class="ambient-track-btn" data-sound="rain" title="Soft rainfall sound">🌧️ Rain</button>
+                <button type="button" class="ambient-track-btn" data-sound="ocean" title="Relaxing ocean waves">🌊 Waves</button>
+                <button type="button" class="ambient-track-btn" data-sound="whitenoise" title="Pink/White noise focus sound">⚪ White Noise</button>
+                <button type="button" class="ambient-track-btn" data-sound="lofi" title="Warm Lo-Fi harmonic drone">☕ Lo-Fi Drone</button>
+                <button type="button" class="ambient-track-btn active-stop" data-sound="none" title="Mute audio">🔇 Off</button>
+            </div>
+        </div>
+
+        <!-- Attachments: Subject & Notes -->
+        <div class="timer-attachments">
+            <div class="form-group" style="margin-bottom: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label class="form-label" for="timerSubjectSelect" style="margin-bottom: 0;">Tag to Course:</label>
+                    <button type="button" id="quickAddTimerSubjectBtn"
+                        style="font-size: 0.78rem; color: #818cf8; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; text-decoration: underline;">+
+                        New Course</button>
+                </div>
+                <select id="timerSubjectSelect" class="form-select">
+                    <option value="">-- Select Course --</option>
+                    {% for s in subjects %}
+                    <option value="{{ s.id }}">{{ s.name }}{% if s.code %} ({{ s.code }}){% endif %}</option>
+                    {% endfor %}
+                    <option value="__create_new__" style="color: #818cf8; font-weight: 600;">➕ + Add Custom Course /
+                        Subject...</option>
+                </select>
+                <div id="quickTimerSubjectPanel"
+                    style="display: none; margin-top: 8px; padding: 10px; background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                    <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 6px; font-weight: 600;">✨ Add Custom
+                        Course / Exam</div>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" id="quickTimerSubjectName" class="form-input"
+                            placeholder="e.g. UPSC / General Studies" style="font-size: 0.85rem; padding: 6px 10px;">
+                        <button type="button" id="quickTimerSubjectSaveBtn" class="btn btn-primary btn-sm"
+                            style="white-space: nowrap; padding: 6px 12px; font-size: 0.8rem;">Add</button>
+                        <button type="button" id="quickTimerSubjectCancelBtn" class="btn btn-secondary btn-sm"
+                            style="padding: 6px 10px; font-size: 0.8rem;">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="timerNotesInput">Session Goal / Topic:</label>
+                <input type="text" id="timerNotesInput" class="form-input"
+                    placeholder="e.g. Solving dynamic programming questions">
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Focus Stats -->
+    <div class="timer-bottom-metrics-grid">
+        <div class="glass-card">
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px;">Today's
+                Focus Time</h3>
+            <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent-cyan);">{{ focus_today.today_hours }}h
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">{{ focus_today.today_sessions }}
+                completed session(s) today</p>
+            <div class="progress-container" style="margin-top: 14px;">
+                <div class="progress-fill"
+                    style="width: {{ focus_today.goal_percentage }}%; background: var(--accent-cyan);"></div>
+            </div>
+            <div
+                style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: flex; justify-content: space-between;">
+                <span>Daily Goal: {{ focus_today.daily_goal_minutes // 60 }}h</span>
+                <span>{{ focus_today.goal_percentage }}% reached</span>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px;">Recent
+                Sessions</h3>
+            {% if recent_sessions %}
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                {% for sess in recent_sessions %}
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; padding: 6px 10px; background: var(--bg-surface-elevated); border-radius: var(--radius-sm);">
+                    <span style="font-weight: 600; color: {{ sess.subject_color or '#6366f1' }};">{{ sess.subject_name
+                        or 'General' }}</span>
+                    <span style="font-family: var(--font-mono); font-weight: 700; color: var(--text-primary);">{{
+                        sess.duration_minutes }}m</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p style="color: var(--text-muted); font-size: 0.85rem;">No study sessions logged today.</p>
+            {% endif %}
+        </div>
+    </div>
+    <!-- Modal: Custom Timer Duration -->
+    <div class="modal-overlay" id="customTimerModal">
+        <div class="modal-container" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3 class="modal-title">⏱️ Set Custom Focus Time</h3>
+                <button class="modal-close" onclick="closeModal('customTimerModal')">&times;</button>
+            </div>
+            <form id="customTimerForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="customTimerMinutesInput">Focus Duration (Minutes)</label>
+                        <input type="number" id="customTimerMinutesInput" class="form-input" min="1" max="240"
+                            value="45" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('customTimerModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Apply Timer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pages/timer.js') }}"></script>
+{% endblock %}

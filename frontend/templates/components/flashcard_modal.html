@@ -1,0 +1,93 @@
+<!-- AI Flashcards & Active Recall Modal -->
+<div class="modal-overlay" id="flashcardsModal">
+    <div class="modal-container flashcards-modal-container">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="flashcard-avatar-badge">🎴</div>
+                <div>
+                    <h3 class="modal-title" style="margin: 0; font-size: 1.1rem; color: #f8fafc;">AI Flashcards & Active Recall</h3>
+                    <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">Spaced repetition & self-testing powered by AI</div>
+                </div>
+            </div>
+            <button class="modal-close" onclick="closeModal('flashcardsModal')">&times;</button>
+        </div>
+
+        <div class="modal-body flashcards-modal-body">
+            <!-- Topic Selector Bar -->
+            <div class="flashcard-controls-bar">
+                <div style="flex: 1; display: flex; gap: 8px; flex-wrap: wrap;">
+                    <select id="flashcardSubjectSelect" class="form-select" style="max-width: 200px; font-size: 0.82rem; padding: 6px 10px;">
+                        <option value="">-- Choose Subject --</option>
+                        {% for s in subjects %}
+                        <option value="{{ s.id }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" id="flashcardCustomTopic" class="form-input" placeholder="Or type any topic (e.g. Python, SQL, OS)..." style="flex: 1; min-width: 180px; font-size: 0.82rem; padding: 6px 10px;">
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" id="btnGenerateFlashcards" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;">
+                    <span>⚡ Generate Deck</span>
+                </button>
+            </div>
+
+            <!-- Flashcard Deck Progress Indicator -->
+            <div class="flashcard-meta-row">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span id="fcDifficultyBadge" class="badge" style="background: rgba(99, 102, 241, 0.2); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.4);">Fundamental</span>
+                    <span id="fcTagBadge" style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">Data Structures</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span id="fcCounterText" style="font-size: 0.8rem; font-weight: 700; color: #f8fafc;">Card 1 of 5</span>
+                </div>
+            </div>
+
+            <div class="progress-container" style="height: 4px; margin: 6px 0 16px;">
+                <div class="progress-fill" id="fcProgressBar" style="width: 20%; background: linear-gradient(90deg, #6366f1, #38bdf8);"></div>
+            </div>
+
+            <!-- 3D Interactive Flip Card Container -->
+            <div class="flashcard-perspective-wrapper">
+                <div class="flashcard-card-3d" id="activeFlashcard" onclick="toggleFlashcardFlip()">
+                    <!-- Front Side (Question) -->
+                    <div class="flashcard-face flashcard-face-front">
+                        <div class="fc-side-label">QUESTION</div>
+                        <div class="fc-content-text" id="fcQuestionText">
+                            Loading high-yield revision flashcards...
+                        </div>
+                        <div class="fc-hint-action">
+                            <span>🔄 Click or Press Space to Flip</span>
+                        </div>
+                    </div>
+
+                    <!-- Back Side (Answer) -->
+                    <div class="flashcard-face flashcard-face-back">
+                        <div class="fc-side-label" style="color: #34d399;">ANSWER & KEY CONCEPT</div>
+                        <div class="fc-content-text" id="fcAnswerText">
+                            Click 'Flip' to see the answer.
+                        </div>
+                        <div class="fc-hint-action">
+                            <span>🔄 Click to Flip Back</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Navigation & Mastery Controls -->
+            <div class="flashcard-actions-bar">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnPrevCard" onclick="navigateFlashcard(-1)" style="padding: 7px 14px;">
+                    ◀ Previous
+                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="toggleFlashcardFlip()" style="padding: 7px 16px; border-color: rgba(99, 102, 241, 0.4); color: #c7d2fe;">
+                        🔄 Flip Card
+                    </button>
+                    <button type="button" class="btn btn-sm" id="btnMarkMastered" onclick="markCardMastered()" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; padding: 7px 14px;">
+                        ✓ Mastered
+                    </button>
+                </div>
+                <button type="button" class="btn btn-primary btn-sm" id="btnNextCard" onclick="navigateFlashcard(1)" style="padding: 7px 16px;">
+                    Next ▶
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

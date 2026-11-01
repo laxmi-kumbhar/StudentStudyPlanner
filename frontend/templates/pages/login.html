@@ -1,0 +1,261 @@
+{% extends 'layouts/auth_base.html' %}
+
+{% block title %}Sign In - Student Study Planner{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-brand-logo">
+                <div class="logo-icon-badge" style="width: 48px; height: 48px; margin: 0 auto;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
+            </div>
+            <h1 class="auth-title">Welcome to StudyFlow</h1>
+            <p class="auth-subtitle">Sign in to access your study planner, courses & timetable</p>
+        </div>
+
+        <!-- Google Sign-In Action -->
+        {% if google_client_id %}
+            <div id="googleBtnWrapper" class="google-gsi-container">
+                <!-- Native Google Identity Services Button will be rendered here -->
+                <div id="googleGsiButton"></div>
+            </div>
+        {% else %}
+            <button type="button" class="btn-google" id="googleCustomBtn" onclick="handleGoogleClick()">
+                <svg viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span>Sign in with Google</span>
+            </button>
+        {% endif %}
+
+        <div class="auth-divider">
+            <span>or sign in with Gmail / Email</span>
+        </div>
+
+        <!-- Gmail ID & Password Form -->
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="loginUsername">Gmail ID or Email Address</label>
+                <div class="password-input-wrapper">
+                    <input type="text" id="loginUsername" name="username" class="form-input" placeholder="student@gmail.com" autocomplete="username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="loginPassword">Password</label>
+                <div class="password-input-wrapper">
+                    <input type="password" id="loginPassword" name="password" class="form-input" placeholder="••••••••" autocomplete="current-password" required>
+                    <button type="button" class="password-toggle-btn" id="togglePasswordBtn" aria-label="Toggle password visibility">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" id="submitLoginBtn" class="btn btn-primary" style="width: 100%; margin-top: 14px; padding: 12px;">
+                <span>Sign In with Gmail / Password</span>
+            </button>
+        </form>
+
+        <!-- Dynamic Registration Suggestion Banner if account not found -->
+        <div id="registerPromptBanner" style="display: none; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 10px; padding: 14px; margin-top: 16px; text-align: center; animation: fadeIn 0.3s ease;"></div>
+
+        <!-- Fast Test Logins -->
+        <div class="demo-logins-section">
+            <div class="demo-title">Quick Demo Sign-In</div>
+            <div class="demo-btn-group">
+                <button type="button" class="btn-demo" onclick="loginQuickDemo('alex')">
+                    <span>⚡ Demo Student</span>
+                </button>
+                <button type="button" class="btn-demo btn-demo-google" onclick="loginQuickDemo('google')">
+                    <span>🔴 Google Demo</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="auth-footer">
+            Don't have an account? <a href="{{ url_for('views.register') }}">Create Account</a>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Google Sign-In Setup & Info -->
+<div class="auth-modal-overlay" id="googleSetupModal" style="display: none;">
+    <div class="auth-modal">
+        <div class="auth-modal-header">
+            <div class="auth-modal-title">
+                <svg width="22" height="22" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                <span>Google Sign-In Options</span>
+            </div>
+            <button type="button" class="auth-modal-close" onclick="closeGoogleModal()">&times;</button>
+        </div>
+        <div class="auth-modal-body">
+            <p>You can sign in right now with the simulated <b>Google Student Demo Account</b>, or connect your real Google Cloud OAuth Client ID.</p>
+            
+            <div style="margin: 18px 0; text-align: center;">
+                <button type="button" class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="loginQuickDemo('google')">
+                    🚀 Continue with Demo Google Account (student.google@gmail.com)
+                </button>
+            </div>
+
+            <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 14px; margin-top: 14px;">
+                <b style="color: #f8fafc;">To use your real Google Account:</b>
+                <ol class="auth-modal-steps">
+                    <li>Open <b>Google Cloud Console</b> &rarr; <i>Credentials</i></li>
+                    <li>Create an <b>OAuth 2.0 Client ID</b> (Web application)</li>
+                    <li>Add Authorized JavaScript Origin: <code>http://127.0.0.1:5000</code></li>
+                    <li>Add Client ID to your <code>.env</code> file:
+                        <br><code>GOOGLE_CLIENT_ID=your-id.apps.googleusercontent.com</code>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const GOOGLE_CLIENT_ID = "{{ google_client_id or '' }}";
+
+// Toggle password show/hide
+const pwdInput = document.getElementById('loginPassword');
+const toggleBtn = document.getElementById('togglePasswordBtn');
+if (toggleBtn && pwdInput) {
+    toggleBtn.addEventListener('click', () => {
+        const isPassword = pwdInput.type === 'password';
+        pwdInput.type = isPassword ? 'text' : 'password';
+        toggleBtn.style.color = isPassword ? 'var(--primary-light, #818cf8)' : '';
+    });
+}
+
+// Google Sign-In helper functions
+function handleGoogleClick() {
+    if (GOOGLE_CLIENT_ID) {
+        if (window.google && google.accounts && google.accounts.id) {
+            google.accounts.id.prompt();
+        } else {
+            document.getElementById('googleSetupModal').style.display = 'flex';
+        }
+    } else {
+        document.getElementById('googleSetupModal').style.display = 'flex';
+    }
+}
+
+function closeGoogleModal() {
+    document.getElementById('googleSetupModal').style.display = 'none';
+}
+
+// Google Credential Callback for Google Identity Services
+async function handleGoogleCredentialResponse(response) {
+    try {
+        if (window.showToast) window.showToast("Authenticating with Google...", "info");
+        const res = await api.post('/api/auth/google', { credential: response.credential });
+        if (window.showToast) window.showToast(res.message || "Signed in with Google!", "success");
+        setTimeout(() => window.location.href = "{{ url_for('views.index_view') }}", 600);
+    } catch (err) {
+        console.error("Google login failed:", err);
+    }
+}
+
+// Initialize Google Identity Services if client ID is configured
+window.addEventListener('load', () => {
+    if (GOOGLE_CLIENT_ID && window.google && google.accounts && google.accounts.id) {
+        try {
+            google.accounts.id.initialize({
+                client_id: GOOGLE_CLIENT_ID,
+                callback: handleGoogleCredentialResponse,
+                auto_select: false
+            });
+            const gsiContainer = document.getElementById('googleGsiButton');
+            if (gsiContainer) {
+                google.accounts.id.renderButton(gsiContainer, {
+                    theme: 'filled_blue',
+                    size: 'large',
+                    text: 'continue_with',
+                    shape: 'rectangular',
+                    logo_alignment: 'left',
+                    width: '380'
+                });
+            }
+        } catch (e) {
+            console.warn("Failed initializing Google Identity Services:", e);
+        }
+    }
+});
+
+// Gmail & Password Login Form Submit
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitLoginBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span>Signing In...</span>';
+
+    const formData = new FormData(e.target);
+    const loginId = formData.get('username').trim();
+    const password = formData.get('password');
+
+    try {
+        const res = await api.post('/api/auth/login', {
+            username: loginId,
+            password: password
+        });
+        if (window.showToast) showToast(res.message || "Logged in successfully!", "success");
+        setTimeout(() => window.location.href = "{{ url_for('views.index_view') }}", 600);
+    } catch (err) {
+        console.error("Login failed:", err);
+        const errText = (err.message || "").toLowerCase();
+        if (errText.includes("no account found")) {
+            const promptBanner = document.getElementById('registerPromptBanner');
+            if (promptBanner) {
+                promptBanner.style.display = 'block';
+                const safeEmail = loginId.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                promptBanner.innerHTML = `
+                    <div style="color: #e2e8f0; font-size: 0.92rem; margin-bottom: 10px;">
+                        📌 <b>${safeEmail}</b> is not registered on StudyFlow yet.
+                    </div>
+                    <a href="{{ url_for('views.register') }}?email=${encodeURIComponent(loginId)}" 
+                       class="btn btn-primary btn-sm" 
+                       style="display: inline-block; padding: 8px 18px; font-size: 0.88rem; font-weight: 600; text-decoration: none; border-radius: 6px;">
+                        ✨ Create Free Account with this Gmail &rarr;
+                    </a>
+                `;
+            }
+        }
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+// Quick Demo Login helper
+async function loginQuickDemo(type) {
+    closeGoogleModal();
+    const endpoint = type === 'google' ? '/api/auth/google/demo' : '/api/auth/demo';
+    try {
+        if (window.showToast) showToast("Logging into demo account...", "info");
+        const res = await api.post(endpoint, {});
+        if (window.showToast) showToast(res.message || "Demo login successful!", "success");
+        setTimeout(() => window.location.href = "{{ url_for('views.index_view') }}", 600);
+    } catch (err) {
+        console.error("Demo login error:", err);
+    }
+}
+</script>
+{% endblock %}

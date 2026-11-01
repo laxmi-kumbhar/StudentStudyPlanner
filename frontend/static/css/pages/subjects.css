@@ -1,0 +1,146 @@
+/* Subjects & Syllabus Styles */
+
+.subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+}
+
+.subject-card {
+    background: var(--bg-glass-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: all var(--trans-normal);
+}
+
+.subject-card:hover {
+    border-color: var(--border-medium);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.subject-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.subject-badge-pill {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--subj-color, var(--primary));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.subject-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-top: 6px;
+}
+
+.subject-meta-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    background: var(--bg-surface-elevated);
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    font-size: 0.82rem;
+}
+
+.subject-stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.subject-stat-label {
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+}
+
+.subject-stat-val {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Topics / Syllabus Accordion or List */
+.syllabus-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.topic-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-subtle);
+    font-size: 0.85rem;
+    transition: all var(--trans-fast);
+}
+
+.topic-item:hover {
+    border-color: var(--border-medium);
+}
+
+.topic-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.topic-item.completed span {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+/* ================= MOBILE COURSES / SUBJECTS OPTIMIZATIONS ================= */
+@media (max-width: 640px) {
+    .subjects-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .subject-card {
+        padding: 18px 16px;
+        gap: 14px;
+    }
+
+    .subject-title {
+        font-size: 1.05rem;
+    }
+
+    .subject-meta-stats {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .syllabus-list {
+        max-height: 200px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .topic-item {
+        padding: 9px 12px;
+        min-height: 40px;
+    }
+}
+

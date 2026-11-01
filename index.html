@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0; url=frontend/index.html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Study Planner - StudyFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #0b0f19;
+            color: #f8fafc;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .launch-card {
+            background: rgba(17, 24, 39, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 36px;
+            text-align: center;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+        .btn-launch {
+            display: inline-block;
+            background: #6366f1;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            margin-top: 18px;
+            transition: background 0.2s;
+        }
+        .btn-launch:hover {
+            background: #4f46e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="launch-card">
+        <div style="font-size: 2.2rem; margin-bottom: 12px;">🎓</div>
+        <h2 style="margin: 0 0 10px 0;">Student Study Planner</h2>
+        <p style="color: #94a3b8; font-size: 0.95rem; margin-bottom: 20px;">
+            Opening Study Planner... Please sign in with your Gmail ID & password or Google account to continue.
+        </p>
+        <a href="frontend/index.html" class="btn-launch">Open Study Planner &rarr;</a>
+        <p style="color: #64748b; font-size: 0.8rem; margin-top: 20px;">
+            Flask Server URL: <a href="http://127.0.0.1:5000" style="color: #818cf8;">http://127.0.0.1:5000</a>
+        </p>
+    </div>
+    <script>
+        window.location.href = "frontend/index.html";
+    </script>
+</body>
+</html>

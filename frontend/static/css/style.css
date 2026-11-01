@@ -1,0 +1,46 @@
+/* ==========================================================================
+   STUDYFLOW - MASTER STYLESHEET (style.css)
+   Combines Design Tokens, Base Layout, UI Components, and Interactive Views
+   ========================================================================== */
+
+@import url('variables.css');
+@import url('base.css');
+@import url('components.css');
+@import url('pages/dashboard.css');
+@import url('pages/subjects.css');
+@import url('pages/tasks.css');
+@import url('pages/timer.css');
+@import url('pages/calendar.css');
+@import url('pages/analytics.css');
+
+/* Section View Visibility */
+.view-section {
+    display: none;
+    animation: fadeIn 0.25s ease forwards;
+}
+
+.view-section.active {
+    display: block;
+}
+
+/* Tab Navigation Buttons */
+.nav-tab-btn {
+    width: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+}
+
+/* Quick Add Dropdown Menu */
+.quick-action-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-surface-elevated);
+    border: 1px solid var(--border-medium);
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 600;
+}

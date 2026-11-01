@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="StudyFlow - Intelligent Student Study Planner with Pomodoro timer, Kanban tasks, course syllabus tracking, and study analytics.">
+    <title>StudyFlow - Smart Student Study Planner</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- Master CSS (links all separate CSS files) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Backdrop for Mobile -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- ================= SIDEBAR NAVIGATION ================= -->
+        <aside class="sidebar" id="sidebar">
+            <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close Navigation">&times;</button>
+            <a href="{{ url_for('views.index_view') }}" class="brand-logo">
+                <div class="logo-icon-badge">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <div class="brand-title">StudyFlow</div>
+                    <div class="brand-subtitle">Smart Planner</div>
+                </div>
+            </a>
+
+            <nav class="nav-menu">
+                <div class="nav-section-title">Navigation</div>
+
+                <button class="nav-item nav-tab-item active" data-view="dashboard">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Dashboard</span>
+                </button>
+
+                <button class="nav-item nav-tab-item" data-view="subjects">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                    </svg>
+                    <span>Courses & Syllabus</span>
+                </button>
+
+                <button class="nav-item nav-tab-item" data-view="tasks">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    <span>Tasks & Kanban</span>
+                </button>
+
+                <button class="nav-item nav-tab-item" data-view="timer">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Focus Room (Timer)</span>
+                </button>
+
+                <button class="nav-item nav-tab-item" data-view="calendar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>Timetable & Exams</span>
+                </button>
+
+                <button class="nav-item nav-tab-item" data-view="analytics">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>Study Analytics</span>
+                </button>
+
+                <!-- Ask AI Assistant Button -->
+                <button type="button" class="nav-item" onclick="openModal('aiModal')" style="color: #c084fc; border: 1px dashed rgba(168, 85, 247, 0.4); background: rgba(168, 85, 247, 0.08); margin-top: 10px; cursor: pointer;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d946ef" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    <span style="font-weight: 700;">✨ Ask AI Assistant</span>
+                </button>
+
+                <!-- AI Flashcards Button -->
+                <button type="button" class="nav-item" onclick="openFlashcardsModal()" style="color: #38bdf8; border: 1px dashed rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.08); margin-top: 6px; cursor: pointer;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                    </svg>
+                    <span style="font-weight: 700;">🎴 AI Flashcards</span>
+                </button>
+            </nav>
+
+            <!-- User Badge & Sign Out -->
+            <div class="sidebar-footer">
+                <div class="user-profile-widget" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 10px; overflow: hidden; min-width: 0;">
+                        <div class="user-avatar" style="background-color: {{ user.avatar_color if user else '#6366f1' }}; flex-shrink: 0;">
+                            {% if user and user.avatar_url %}
+                                <img src="{{ user.avatar_url }}" alt="avatar" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                            {% else %}
+                                {{ user.username[0]|upper if user else 'S' }}
+                            {% endif %}
+                        </div>
+                        <div class="user-info" style="overflow: hidden;">
+                            <span class="user-name" title="{{ user.username if user else 'Student' }}">{{ user.username if user else 'Student' }}</span>
+                            <span class="user-status" style="font-size: 0.72rem; color: var(--text-secondary); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; display: block;" title="{{ user.email if user else '' }}">
+                                {{ user.email if user else 'Active Student' }}
+                            </span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('views.logout') }}" class="btn-sidebar-logout" title="Sign Out" style="color: #f87171; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 7px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; flex-shrink: 0; margin-left: 6px;">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN WORKSPACE ================= -->
+        <main class="main-wrapper">
+            <!-- Top Header Navbar -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="mobile-nav-toggle" aria-label="Toggle Navigation">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1 class="page-title">Student Study Planner</h1>
+                        <p class="page-description">Organize courses, tasks, focus sessions, and track study metrics.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <!-- Streak Flame Badge -->
+                    {% if stats and stats.study_streak > 0 %}
+                    <div class="badge"
+                        style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); padding: 6px 12px;">
+                        🔥 {{ stats.study_streak }} Day Streak
+                    </div>
+                    {% endif %}
+
+                    <!-- Quick Focus Room Button -->
+                    <button class="btn btn-outline btn-sm" onclick="switchView('timer')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        <span>Focus Room</span>
+                    </button>
+
+                    <!-- AI Flashcards Button -->
+                    <button class="btn btn-outline btn-sm" onclick="openFlashcardsModal()" title="AI Flashcards & Active Recall" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+                        <span style="font-size: 0.95rem;">🎴</span>
+                        <span>Flashcards</span>
+                    </button>
+
+                    <!-- Ask AI Assistant Button -->
+                    <button class="btn btn-ai-sparkle btn-sm" onclick="openModal('aiModal')" title="Ask AI Study Assistant">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                        <span>✨ Ask AI</span>
+                    </button>
+
+                    <!-- Add Task Button -->
+                    <button class="btn btn-primary btn-sm" onclick="openModal('taskModal')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>New Task</span>
+                    </button>
+
+                    <!-- Sign Out Button -->
+                    <a href="{{ url_for('views.logout') }}" class="btn btn-outline btn-sm" title="Sign Out" style="color: #f87171; border-color: rgba(239, 68, 68, 0.35);">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        <span>Sign Out</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Page Views Wrapper -->
+            <div class="page-content">
+
+                <!-- ================= VIEW 1: DASHBOARD ================= -->
+                <section class="view-section active" id="view-dashboard">
+                    <!-- Stat Overview Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card" style="--card-accent: #6366f1;">
+                            <div class="stat-icon-wrapper">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Study Time</span>
+                                <span class="stat-value">{{ stats.total_hours }}h</span>
+                                <span class="stat-subtext">{{ stats.week_hours }}h logged this week</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" style="--card-accent: #10b981;">
+                            <div class="stat-icon-wrapper">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Tasks Completion</span>
+                                <span class="stat-value">{{ stats.task_completion_rate }}%</span>
+                                <span class="stat-subtext">{{ stats.completed_tasks }} of {{ stats.total_tasks }} tasks
+                                    done</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" style="--card-accent: #f59e0b;">
+                            <div class="stat-icon-wrapper">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Study Streak</span>
+                                <span class="stat-value">{{ stats.study_streak }} Days</span>
+                                <span class="stat-subtext">Active daily study</span>
+                            </div>
+                        </div>
+
+                        <div class="stat-card" style="--card-accent: #ec4899;">
+                            <div class="stat-icon-wrapper">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Active Courses</span>
+                                <span class="stat-value">{{ stats.total_subjects }}</span>
+                                <span class="stat-subtext">Enrolled subjects</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2-Column Dashboard Grid -->
+                    <div class="dashboard-layout-grid">
+                        <div class="dashboard-left">
+                            <!-- Hero Focus Card -->
+                            <div class="hero-focus-card">
+                                <div class="hero-text">
+                                    <h2>Ready for a deep focus session?</h2>
+                                    <p>Launch the Pomodoro timer, eliminate distractions, and automatically log your
+                                        study hours into SQLite.</p>
+                                    <div style="margin-top: 18px;">
+                                        <button class="btn btn-primary" onclick="switchView('timer')">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                            </svg>
+                                            Launch 25m Focus Session
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Priority Tasks -->
+                            <div class="glass-card" style="margin-bottom: 24px;">
+                                <div class="card-header">
+                                    <h2 class="card-title">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="var(--primary)" stroke-width="2">
+                                            <path d="M12 8v4l3 3"></path>
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                        </svg>
+                                        Priority Tasks Due Soon
+                                    </h2>
+                                    <button class="btn btn-outline btn-sm" onclick="switchView('tasks')">View
+                                        Kanban</button>
+                                </div>
+
+                                {% if urgent_tasks %}
+                                <div class="quick-task-list">
+                                    {% for task in urgent_tasks %}
+                                    <div class="quick-task-item">
+                                        <div class="quick-task-main">
+                                            <button class="task-checkbox-custom" data-task-id="{{ task.id }}"
+                                                title="Mark Completed"></button>
+                                            <div>
+                                                <div class="quick-task-title">{{ task.title }}</div>
+                                                <div class="quick-task-due">
+                                                    {% if task.subject_name %}
+                                                    <span style="color: {{ task.subject_color }}; font-weight: 600;">{{
+                                                        task.subject_name }}</span> &bull;
+                                                    {% endif %}
+                                                    {{ task.relative_due_date }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <p
+                                    style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px;">
+                                    No pending tasks! Great job staying ahead.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="dashboard-right">
+                            <!-- Today's Classes -->
+                            <div class="glass-card" style="margin-bottom: 24px;">
+                                <div class="card-header">
+                                    <h2 class="card-title">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="var(--accent-cyan)" stroke-width="2">
+                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        </svg>
+                                        Today's Lectures
+                                    </h2>
+                                    <button class="btn btn-outline btn-sm"
+                                        onclick="switchView('calendar')">Timetable</button>
+                                </div>
+
+                                {% if today_classes %}
+                                <div class="timeline-list">
+                                    {% for slot in today_classes %}
+                                    <div class="timeline-item" style="--item-color: {{ slot.subject_color }};">
+                                        <div class="timeline-time">{{ slot.start_time }} - {{ slot.end_time }}</div>
+                                        <div class="timeline-info">
+                                            <div class="timeline-subject">{{ slot.subject_name }}</div>
+                                            <div class="timeline-location">{{ slot.location or 'Room TBA' }}</div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <p
+                                    style="color: var(--text-muted); font-size: 0.88rem; text-align: center; padding: 20px;">
+                                    No lectures scheduled for today.</p>
+                                {% endif %}
+                            </div>
+
+                            <!-- Upcoming Exams -->
+                            <div class="glass-card">
+                                <div class="card-header">
+                                    <h2 class="card-title">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                            stroke="var(--accent-rose)" stroke-width="2">
+                                            <polygon
+                                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                                            </polygon>
+                                        </svg>
+                                        Upcoming Exams
+                                    </h2>
+                                </div>
+
+                                {% if stats.upcoming_exams %}
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    {% for exam in stats.upcoming_exams %}
+                                    <div
+                                        style="background: var(--bg-surface-elevated); padding: 12px 14px; border-radius: var(--radius-md); border-left: 3px solid {{ exam.subject_color }};">
+                                        <div style="font-weight: 600; font-size: 0.9rem;">{{ exam.title }}</div>
+                                        <div
+                                            style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+                                            <span>{{ exam.subject_name }}</span>
+                                            <span style="color: var(--accent-rose); font-weight: 600;">{{
+                                                exam.exam_date[:10] }}</span>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <p
+                                    style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 16px;">
+                                    No upcoming exams scheduled.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Milestones & Badges Showcase -->
+                    <div class="glass-card" style="margin-top: 24px;">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <span style="font-size: 1.15rem;">🏅</span>
+                                Academic Milestones & Badges
+                            </h2>
+                            <span style="font-size: 0.78rem; color: #a5b4fc; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); padding: 3px 8px; border-radius: 9999px;">
+                                Gamified Study Progress
+                            </span>
+                        </div>
+                        <div class="badges-grid-layout">
+                            {% for b in badges %}
+                            <div class="badge-card-item {% if b.unlocked %}badge-item-unlocked{% else %}badge-item-locked{% endif %}">
+                                <div class="badge-icon-wrap">{{ b.icon }}</div>
+                                <div class="badge-content-wrap">
+                                    <div class="badge-title-row">
+                                        <span class="badge-name">{{ b.title }}</span>
+                                        <span class="badge-tier-tag tier-{{ b.tier|lower }}">{{ b.tier }}</span>
+                                    </div>
+                                    <p class="badge-desc-text">{{ b.desc }}</p>
+                                    <div class="badge-progress-wrap">
+                                        <div class="badge-progress-bar">
+                                            <div class="badge-progress-fill" style="width: {{ (b.progress / b.max * 100)|round }}%;"></div>
+                                        </div>
+                                        <span class="badge-status-label">{% if b.unlocked %}✓ Unlocked{% else %}{{ b.progress }}/{{ b.max }}{% endif %}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= VIEW 2: COURSES & SYLLABUS ================= -->
+                <section class="view-section" id="view-subjects">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2 style="font-size: 1.25rem; font-weight: 700;">Enrolled Courses & Modules ({{ subjects|length
+                            }})</h2>
+                        <button class="btn btn-primary" onclick="openModal('newSubjectModal')">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Add New Course</span>
+                        </button>
+                    </div>
+
+                    {% if subjects %}
+                    <div class="subjects-grid">
+                        {% for s in subjects %}
+                        <div class="subject-card"
+                            style="--subj-color: {{ s.color }}; border-top: 4px solid {{ s.color }};">
+                            <div class="subject-header-row">
+                                <div>
+                                    {% if s.code %}
+                                    <span class="subject-badge-pill">{{ s.code }}</span>
+                                    {% endif %}
+                                    <h3 class="subject-title">{{ s.name }}</h3>
+                                </div>
+                                <button class="btn-icon btn-outline btn-sm" onclick="deleteSubject({{ s.id }})"
+                                    title="Delete Course">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path
+                                            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                        </path>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="subject-meta-stats">
+                                <div class="subject-stat-item">
+                                    <span class="subject-stat-label">Total Studied</span>
+                                    <span class="subject-stat-val">{{ s.total_study_hours }}h</span>
+                                </div>
+                                <div class="subject-stat-item">
+                                    <span class="subject-stat-label">Weekly Target</span>
+                                    <span class="subject-stat-val">{{ s.target_hours_per_week }}h / wk</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div
+                                    style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600;">
+                                    <span style="color: var(--text-secondary);">Syllabus Progress</span>
+                                    <span style="color: {{ s.color }};">{{ s.progress_pct }}% ({{ s.completed_topics
+                                        }}/{{ s.total_topics }})</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-fill"
+                                        style="width: {{ s.progress_pct }}%; background: {{ s.color }};"></div>
+                                </div>
+                            </div>
+
+                            <form class="add-topic-form" data-subject-id="{{ s.id }}" style="display: flex; gap: 8px;">
+                                <input type="text" name="title" class="form-input"
+                                    placeholder="+ Add module or chapter topic..."
+                                    style="padding: 8px 12px; font-size: 0.82rem;" required>
+                                <button type="submit" class="btn btn-secondary btn-sm"
+                                    style="padding: 0 14px;">Add</button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </section>
+
+                <!-- ================= VIEW 3: TASKS & KANBAN ================= -->
+                <section class="view-section" id="view-tasks">
+                    <div class="tasks-toolbar">
+                        <div class="tasks-filters">
+                            <label for="filterSubject"
+                                style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;">Course
+                                Filter:</label>
+                            <select id="filterSubject" class="form-select"
+                                style="width: 220px; padding: 8px 12px; font-size: 0.85rem;">
+                                <option value="">All Courses</option>
+                                {% for s in subjects %}
+                                <option value="{{ s.id }}">{{ s.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="openModal('taskModal')">+ Add New Task</button>
+                    </div>
+
+                    <div class="kanban-board">
+                        <!-- To Do -->
+                        <div class="kanban-column">
+                            <div class="kanban-header">
+                                <div class="kanban-title">
+                                    <span
+                                        style="width: 10px; height: 10px; border-radius: 50%; background: #6366f1;"></span>
+                                    <span>To Do</span>
+                                </div>
+                                <span class="column-counter">{{ tasks.todo|length if tasks else 0 }}</span>
+                            </div>
+                            <div class="kanban-cards-container">
+                                {% if tasks and tasks.todo %}
+                                {% for task in tasks.todo %}
+                                <div class="task-card">
+                                    <div class="task-header">
+                                        <span class="task-subject-tag"
+                                            style="--subj-tag-color: {{ task.subject_color or '#6366f1' }};"
+                                            title="Course: {{ task.subject_name or 'General' }}">
+                                            {{ task.subject_name or 'General' }}
+                                        </span>
+                                        <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                                    </div>
+                                    <h4 class="task-title">{{ task.title }}</h4>
+                                    {% if task.description %}<p class="task-desc">{{ task.description }}</p>{% endif %}
+                                    <div class="task-footer">
+                                        <div class="task-due">
+                                            <span>{{ task.relative_due_date }}</span>
+                                        </div>
+                                        <div class="task-actions">
+                                            <button class="task-action-btn"
+                                                onclick="moveTaskStatus({{ task.id }}, 'in_progress')"
+                                                title="Start Working">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                                    stroke="#6366f1" stroke-width="2.5">
+                                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                                </svg>
+                                            </button>
+                                            <button class="task-action-btn" onclick="deleteTask({{ task.id }})"
+                                                title="Delete Task">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                    stroke="#f43f5e" stroke-width="2">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path
+                                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                                    </path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- In Progress -->
+                        <div class="kanban-column">
+                            <div class="kanban-header">
+                                <div class="kanban-title">
+                                    <span
+                                        style="width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span>
+                                    <span>In Progress</span>
+                                </div>
+                                <span class="column-counter">{{ tasks.in_progress|length if tasks else 0 }}</span>
+                            </div>
+                            <div class="kanban-cards-container">
+                                {% if tasks and tasks.in_progress %}
+                                {% for task in tasks.in_progress %}
+                                <div class="task-card" style="border-left: 3px solid #f59e0b;">
+                                    <div class="task-header">
+                                        <span class="task-subject-tag"
+                                            style="--subj-tag-color: {{ task.subject_color or '#6366f1' }};"
+                                            title="Course: {{ task.subject_name or 'General' }}">
+                                            {{ task.subject_name or 'General' }}
+                                        </span>
+                                        <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                                    </div>
+                                    <h4 class="task-title">{{ task.title }}</h4>
+                                    {% if task.description %}<p class="task-desc">{{ task.description }}</p>{% endif %}
+                                    <div class="task-footer">
+                                        <div class="task-due"><span>{{ task.relative_due_date }}</span></div>
+                                        <div class="task-actions">
+                                            <button class="task-action-btn"
+                                                onclick="moveTaskStatus({{ task.id }}, 'completed')" title="Complete">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                                    stroke="#10b981" stroke-width="2.5">
+                                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                                </svg>
+                                            </button>
+                                            <button class="task-action-btn"
+                                                onclick="moveTaskStatus({{ task.id }}, 'todo')" title="Back to Todo">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                                    stroke="#94a3b8" stroke-width="2.5">
+                                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Completed -->
+                        <div class="kanban-column">
+                            <div class="kanban-header">
+                                <div class="kanban-title">
+                                    <span
+                                        style="width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span>
+                                    <span>Completed</span>
+                                </div>
+                                <span class="column-counter">{{ tasks.completed|length if tasks else 0 }}</span>
+                            </div>
+                            <div class="kanban-cards-container">
+                                {% if tasks and tasks.completed %}
+                                {% for task in tasks.completed %}
+                                <div class="task-card" style="opacity: 0.8; border-left: 3px solid #10b981;">
+                                    <div class="task-header">
+                                        <span class="task-subject-tag"
+                                            style="--subj-tag-color: {{ task.subject_color or '#6366f1' }};"
+                                            title="Course: {{ task.subject_name or 'General' }}">
+                                            {{ task.subject_name or 'General' }}
+                                        </span>
+                                        <span class="badge priority-low">Done</span>
+                                    </div>
+                                    <h4 class="task-title"
+                                        style="text-decoration: line-through; color: var(--text-secondary);">{{
+                                        task.title }}</h4>
+                                    <div class="task-footer">
+                                        <div class="task-due" style="color: var(--accent-emerald);">
+                                            <span>Finished</span>
+                                        </div>
+                                        <div class="task-actions">
+                                            <button class="task-action-btn" onclick="deleteTask({{ task.id }})"
+                                                title="Delete Task">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                    stroke="#f43f5e" stroke-width="2">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path
+                                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                                                    </path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= VIEW 4: FOCUS ROOM (POMODORO) ================= -->
+                <section class="view-section" id="view-timer">
+                    <div class="timer-view-wrapper">
+                        <div class="timer-card-main">
+                            <div class="timer-modes">
+                                <button class="timer-mode-btn active" data-mode="pomodoro">Pomodoro (25m)</button>
+                                <button class="timer-mode-btn" data-mode="short_break">Short Break (5m)</button>
+                                <button class="timer-mode-btn" data-mode="long_break">Long Break (15m)</button>
+                                <button class="timer-mode-btn" data-mode="custom">Custom</button>
+                            </div>
+
+                            <div class="timer-circle-container">
+                                <svg class="timer-svg" viewBox="0 0 280 280">
+                                    <circle class="timer-svg-bg" cx="140" cy="140" r="130"></circle>
+                                    <circle class="timer-svg-progress" id="timerProgressRing" cx="140" cy="140" r="130">
+                                    </circle>
+                                </svg>
+                                <div class="timer-display-inner">
+                                    <div class="timer-countdown" id="timerCountdown">25:00</div>
+                                    <div class="timer-status-text" id="timerStatusText">Ready to Focus</div>
+                                </div>
+                            </div>
+
+                            <div class="timer-controls">
+                                <button class="btn btn-primary btn-timer-primary" id="timerToggleBtn">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                    </svg>
+                                    <span>Start Focus</span>
+                                </button>
+                                <button class="btn btn-secondary btn-icon" id="timerResetBtn" title="Reset Timer"
+                                    style="width: 50px; height: 50px; border-radius: var(--radius-full);">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                        <path d="M3 3v5h5"></path>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Modern Ambient Sound Player -->
+                            <div class="ambient-sound-card">
+                                <div class="ambient-header">
+                                    <div class="ambient-title">
+                                        <span class="ambient-pulse-icon">🎧</span>
+                                        <span>Focus Ambient Audio</span>
+                                    </div>
+                                    <div class="ambient-volume-wrap">
+                                        <span style="font-size: 0.72rem; color: #94a3b8;">Volume</span>
+                                        <input type="range" id="ambientVolumeSlider" min="0" max="100" value="40" class="ambient-slider" title="Adjust sound volume">
+                                    </div>
+                                </div>
+                                <div class="ambient-tracks-row">
+                                    <button type="button" class="ambient-track-btn" data-sound="rain" title="Soft rainfall sound">🌧️ Rain</button>
+                                    <button type="button" class="ambient-track-btn" data-sound="ocean" title="Relaxing ocean waves">🌊 Waves</button>
+                                    <button type="button" class="ambient-track-btn" data-sound="whitenoise" title="Pink/White noise focus sound">⚪ White Noise</button>
+                                    <button type="button" class="ambient-track-btn" data-sound="lofi" title="Warm Lo-Fi harmonic drone">☕ Lo-Fi Drone</button>
+                                    <button type="button" class="ambient-track-btn active-stop" data-sound="none" title="Mute audio">🔇 Off</button>
+                                </div>
+                            </div>
+
+                            <div class="timer-attachments">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <label class="form-label" for="timerSubjectSelect" style="margin-bottom: 0;">Tag
+                                            to Course:</label>
+                                        <button type="button" id="quickAddTimerSubjectBtn"
+                                            style="font-size: 0.78rem; color: #818cf8; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; text-decoration: underline;">+
+                                            New Course</button>
+                                    </div>
+                                    <select id="timerSubjectSelect" class="form-select">
+                                        <option value="">-- Select Course --</option>
+                                        {% for s in subjects %}
+                                        <option value="{{ s.id }}">{{ s.name }}{% if s.code %} ({{ s.code }}){% endif %}
+                                        </option>
+                                        {% endfor %}
+                                        <option value="__create_new__" style="color: #818cf8; font-weight: 600;">➕ + Add
+                                            Custom Course / Subject...</option>
+                                    </select>
+                                    <div id="quickTimerSubjectPanel"
+                                        style="display: none; margin-top: 8px; padding: 10px; background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                                        <div
+                                            style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 6px; font-weight: 600;">
+                                            ✨ Add Custom Course / Exam</div>
+                                        <div style="display: flex; gap: 6px;">
+                                            <input type="text" id="quickTimerSubjectName" class="form-input"
+                                                placeholder="e.g. UPSC / General Studies"
+                                                style="font-size: 0.85rem; padding: 6px 10px;">
+                                            <button type="button" id="quickTimerSubjectSaveBtn"
+                                                class="btn btn-primary btn-sm"
+                                                style="white-space: nowrap; padding: 6px 12px; font-size: 0.8rem;">Add</button>
+                                            <button type="button" id="quickTimerSubjectCancelBtn"
+                                                class="btn btn-secondary btn-sm"
+                                                style="padding: 6px 10px; font-size: 0.8rem;">✕</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label class="form-label" for="timerNotesInput">Session Topic / Goal:</label>
+                                    <input type="text" id="timerNotesInput" class="form-input"
+                                        placeholder="e.g. Practicing dynamic programming problems">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Today's Focus Metrics -->
+                        <div class="timer-bottom-metrics-grid">
+                            <div class="glass-card">
+                                <h3
+                                    style="font-size: 0.95rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px;">
+                                    Today's Focus Time</h3>
+                                <div style="font-size: 2.2rem; font-weight: 800; color: var(--accent-cyan);">{{
+                                    focus_today.today_hours if focus_today else 0 }}h</div>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">{{
+                                    focus_today.today_sessions if focus_today else 0 }} completed session(s) today</p>
+                                <div class="progress-container" style="margin-top: 14px;">
+                                    <div class="progress-fill"
+                                        style="width: {{ focus_today.goal_percentage if focus_today else 0 }}%; background: var(--accent-cyan);">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="glass-card">
+                                <h3
+                                    style="font-size: 0.95rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px;">
+                                    Recent Study Logs</h3>
+                                {% if recent_sessions %}
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    {% for sess in recent_sessions[:4] %}
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; padding: 6px 10px; background: var(--bg-surface-elevated); border-radius: var(--radius-sm);">
+                                        <span style="font-weight: 600; color: {{ sess.subject_color or '#6366f1' }};">{{
+                                            sess.subject_name or 'General' }}</span>
+                                        <span
+                                            style="font-family: var(--font-mono); font-weight: 700; color: var(--text-primary);">{{
+                                            sess.duration_minutes }}m</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <p style="color: var(--text-muted); font-size: 0.85rem;">No study sessions logged today.
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= VIEW 5: TIMETABLE & EXAMS ================= -->
+                <section class="view-section" id="view-calendar">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+                        <div class="calendar-tabs" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                            <button class="tab-btn active" data-target="timetableTab">Weekly Lecture Schedule</button>
+                            <button class="tab-btn" data-target="examsTab">Exams & Deadlines</button>
+                            <!-- 5 vs 7 Days Customizer Toggle -->
+                            <div class="timetable-view-toggle" style="display: inline-flex; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 3px; gap: 4px;">
+                                <button type="button" class="view-days-btn active" id="btnDays5" onclick="setTimetableDays(5)" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; border: none; background: var(--primary); color: white; cursor: pointer; font-weight: 600; transition: all 0.2s;">5 Days (Mon-Fri)</button>
+                                <button type="button" class="view-days-btn" id="btnDays7" onclick="setTimetableDays(7)" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; border: none; background: transparent; color: var(--text-secondary); cursor: pointer; font-weight: 600; transition: all 0.2s;">7 Days (Full Week)</button>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="printTimetableSchedule()" title="Print weekly timetable or save as clean PDF">🖨️ Print / Save PDF</button>
+                            <button class="btn btn-secondary btn-sm" onclick="openAddTimetableModal()">+ Add Class Slot</button>
+                            <button class="btn btn-primary btn-sm" onclick="openAddExamModal()">+ Schedule Exam</button>
+                        </div>
+                    </div>
+
+                    <!-- Timetable Grid Tab -->
+                    <div id="timetableTab" class="tab-content">
+                        <div class="timetable-grid" id="timetableGrid">
+                            {% set days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] %}
+                            {% for day_idx in range(7) %}
+                            <div class="day-column {% if day_idx >= 5 %}weekend-column{% endif %}" data-day-index="{{ day_idx }}">
+                                <div class="day-header" style="{% if day_idx >= 5 %}color: #a5b4fc;{% endif %}">
+                                    {{ days[day_idx] }}
+                                    {% if day_idx >= 5 %}<span style="font-size: 0.7rem; font-weight: 500; opacity: 0.75; display: block;">Weekend</span>{% endif %}
+                                </div>
+                                <div class="day-slots-container">
+                                    {% set found_slots = false %}
+                                    {% for slot in timetable %}
+                                    {% if slot.day_of_week == day_idx %}
+                                    {% set found_slots = true %}
+                                    <div class="class-slot-card" style="--slot-color: {{ slot.subject_color }};">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                            <span class="class-slot-time">{{ slot.start_time }} - {{ slot.end_time }}</span>
+                                            <div style="display: flex; gap: 4px; align-items: center;">
+                                                <button onclick="editTimetableSlot({{ slot.id }}, {{ slot.subject_id }}, {{ slot.day_of_week }}, '{{ slot.start_time }}', '{{ slot.end_time }}', '{{ (slot.location or '') | replace('\\', '\\\\') | replace('\'', '\\\'') }}')"
+                                                    style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 0.8rem; padding: 2px 4px; transition: color 0.2s;" title="Edit Class">✏️</button>
+                                                <button onclick="deleteTimetableSlot({{ slot.id }})"
+                                                    style="background:none; border:none; color:var(--accent-rose); cursor:pointer; font-size: 1.1rem; line-height: 1; padding: 0 4px;" title="Delete Class">&times;</button>
+                                            </div>
+                                        </div>
+                                        <div class="class-slot-subject">{{ slot.subject_name }}</div>
+                                        <div class="class-slot-location">{{ slot.location or 'TBA' }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                    {% if not found_slots %}
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); text-align: center; padding: 20px 0;">No classes</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Exams Grid Tab -->
+                    <div id="examsTab" class="tab-content" style="display: none;">
+                        {% if exams %}
+                        <div class="exams-grid">
+                            {% for ex in exams %}
+                            <div class="exam-card" style="border-top: 4px solid {{ ex.subject_color }};">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <span class="exam-date-badge">{{ ex.exam_date[:10] }}</span>
+                                    <div style="display: flex; gap: 4px; align-items: center;">
+                                        <button onclick="editExam({{ ex.id }}, {{ ex.subject_id }}, '{{ ex.title | replace('\\', '\\\\') | replace('\'', '\\\'') }}', '{{ ex.exam_date }}', '{{ (ex.room_or_link or '') | replace('\\', '\\\\') | replace('\'', '\\\'') }}', '{{ (ex.notes or '') | replace('\\', '\\\\') | replace('\'', '\\\'') }}', {{ ex.weight_percentage or 0 }})"
+                                            style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 0.82rem; padding: 2px 4px;" title="Edit Exam">✏️</button>
+                                        <button onclick="deleteExam({{ ex.id }})"
+                                            style="background:none; border:none; color:var(--accent-rose); cursor:pointer; font-size: 1.1rem; line-height: 1; padding: 0 4px;" title="Delete Exam">&times;</button>
+                                    </div>
+                                </div>
+                                <h4 style="font-size: 1.05rem; font-weight: 700;">{{ ex.title }}</h4>
+                                <div style="font-size: 0.82rem; color: {{ ex.subject_color }}; font-weight: 600;">{{
+                                    ex.subject_name }}</div>
+                                {% if ex.room_or_link %}
+                                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">📍 {{
+                                    ex.room_or_link }}</div>
+                                {% endif %}
+                                {% if ex.weight_percentage > 0 %}
+                                <div
+                                    style="font-size: 0.75rem; color: var(--accent-amber); font-weight: 700; margin-top: 6px;">
+                                    Weight: {{ ex.weight_percentage }}%</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <!-- ================= VIEW 6: STUDY ANALYTICS ================= -->
+                <section class="view-section" id="view-analytics">
+                    <div class="charts-grid-layout">
+                        <div class="chart-card-wrapper">
+                            <div class="card-header">
+                                <h2 class="card-title">Study Hours (Last 7 Days)</h2>
+                            </div>
+                            <div class="chart-canvas-container">
+                                <canvas id="weeklyStudyChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card-wrapper">
+                            <div class="card-header">
+                                <h2 class="card-title">Course Time Share</h2>
+                            </div>
+                            <div class="chart-canvas-container">
+                                <canvas id="subjectDistChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Session History Table -->
+                    <div class="glass-card">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2 class="card-title">Completed Focus Sessions</h2>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Auto-logged from completed tasks &amp; focus timers</span>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="session-history-table" id="analyticsSessionsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Date &amp; Time</th>
+                                        <th>Course</th>
+                                        <th>Mode / Source</th>
+                                        <th>Duration</th>
+                                        <th>Task / Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analyticsSessionsTableBody">
+                                    {% for sess in recent_sessions %}
+                                    <tr>
+                                        <td style="font-family: var(--font-mono); color: var(--text-secondary);">{{ sess.created_at[:16] }}</td>
+                                        <td>
+                                            <span style="font-weight: 600; color: {{ sess.subject_color or '#6366f1' }};">
+                                                {{ sess.subject_name or 'General' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if sess.task_id or (sess.notes and sess.notes.startswith('Completed Task')) %}
+                                            <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.75rem; font-weight: 600;">
+                                                ✓ Task Focus
+                                            </span>
+                                            {% elif sess.session_type == 'pomodoro' %}
+                                            <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.3); font-size: 0.75rem;">
+                                                ⏱️ Pomodoro
+                                            </span>
+                                            {% elif sess.session_type == 'stopwatch' %}
+                                            <span class="badge" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.3); font-size: 0.75rem;">
+                                                ⏱️ Stopwatch
+                                            </span>
+                                            {% else %}
+                                            <span class="badge" style="background: rgba(255,255,255,0.06); font-size: 0.75rem;">
+                                                {{ sess.session_type }}
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td style="font-weight: 700; font-family: var(--font-mono); color: var(--text-primary);">
+                                            {{ sess.duration_minutes }} mins
+                                        </td>
+                                        <td style="color: var(--text-secondary); font-size: 0.85rem;">
+                                            {{ sess.notes or (sess.task_title if sess.task_title else '-') }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <div id="analyticsEmptySessionsMsg" style="{% if recent_sessions %}display: none;{% else %}display: block;{% endif %} text-align: center; padding: 28px; color: var(--text-muted); font-size: 0.88rem;">
+                                ✨ No focus sessions logged yet. Complete tasks or run focus timers to log study sessions!
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    {% include 'components/task_modal.html' %}
+    {% include 'components/subject_modal.html' %}
+    {% include 'components/ai_modal.html' %}
+    {% include 'components/flashcard_modal.html' %}
+
+    <!-- Modal: Add / Edit Timetable Slot -->
+    <div class="modal-overlay" id="timetableModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="timetableModalTitle">Add Class to Timetable</h3>
+                <button class="modal-close" onclick="closeModal('timetableModal')">&times;</button>
+            </div>
+            <form id="timetableForm">
+                <input type="hidden" id="ttSlotId" name="slot_id" value="">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label class="form-label" for="ttSubject" style="margin-bottom: 0;">Course / Subject *</label>
+                            <button type="button" id="quickAddTtSubjectBtn"
+                                style="font-size: 0.78rem; color: #818cf8; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; text-decoration: underline;">+ New Course</button>
+                        </div>
+                        <select id="ttSubject" name="subject_id" class="form-select" required>
+                            <option value="">-- Select Course / Subject --</option>
+                            {% for s in subjects %}
+                            <option value="{{ s.id }}">{{ s.name }}{% if s.code %} ({{ s.code }}){% endif %}</option>
+                            {% endfor %}
+                            <option value="__create_new__" style="color: #818cf8; font-weight: 600;">➕ + Add Custom Course / Subject...</option>
+                        </select>
+                        <div id="quickTtSubjectPanel"
+                            style="display: none; margin-top: 8px; padding: 12px; background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                            <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 8px; font-weight: 600;">
+                                ✨ Add Custom Course / Subject</div>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <input type="text" id="quickTtSubjectName" class="form-input"
+                                    placeholder="Course Name (e.g. Operating Systems)"
+                                    style="font-size: 0.85rem; padding: 6px 10px;">
+                                <div style="display: flex; gap: 8px;">
+                                    <input type="text" id="quickTtSubjectCode" class="form-input"
+                                        placeholder="Code (e.g. CS-208)" style="font-size: 0.82rem; padding: 6px 10px; flex: 1;">
+                                    <input type="color" id="quickTtSubjectColor" class="form-input" value="#6366f1"
+                                        title="Color accent" style="width: 48px; height: 36px; padding: 2px; cursor: pointer;">
+                                    <button type="button" id="quickTtSubjectSaveBtn" class="btn btn-primary btn-sm"
+                                        style="white-space: nowrap; padding: 6px 14px; font-size: 0.82rem;">Add & Select</button>
+                                    <button type="button" id="quickTtSubjectCancelBtn" class="btn btn-secondary btn-sm"
+                                        style="padding: 6px 10px; font-size: 0.82rem;">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ttDay">Day of Week</label>
+                        <select id="ttDay" name="day_of_week" class="form-select">
+                            <option value="0">Monday</option>
+                            <option value="1">Tuesday</option>
+                            <option value="2">Wednesday</option>
+                            <option value="3">Thursday</option>
+                            <option value="4">Friday</option>
+                            <option value="5">Saturday</option>
+                            <option value="6">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="ttStart">Start Time</label>
+                            <input type="time" id="ttStart" name="start_time" class="form-input" value="09:00" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="ttEnd">End Time</label>
+                            <input type="time" id="ttEnd" name="end_time" class="form-input" value="10:30" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="ttLocation">Location / Room</label>
+                        <input type="text" id="ttLocation" name="location" class="form-input"
+                            placeholder="e.g. Science Hall 101 / Online Zoom">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('timetableModal')">Cancel</button>
+                    <button type="submit" id="ttSubmitBtn" class="btn btn-primary">Add to Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add / Edit Exam -->
+    <div class="modal-overlay" id="examModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="examModalTitle">Schedule New Exam</h3>
+                <button class="modal-close" onclick="closeModal('examModal')">&times;</button>
+            </div>
+            <form id="examForm">
+                <input type="hidden" id="examId" name="exam_id" value="">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="examTitle">Exam Title *</label>
+                        <input type="text" id="examTitle" name="title" class="form-input"
+                            placeholder="e.g. Midterm 1: Algorithms" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <label class="form-label" for="examSubject" style="margin-bottom: 0;">Course *</label>
+                                <button type="button" id="quickAddExamSubjectBtn"
+                                    style="font-size: 0.78rem; color: #818cf8; background: none; border: none; cursor: pointer; padding: 0; font-weight: 600; text-decoration: underline;">+ New Course</button>
+                            </div>
+                            <select id="examSubject" name="subject_id" class="form-select" required>
+                                <option value="">-- Select Course / Subject --</option>
+                                {% for s in subjects %}
+                                <option value="{{ s.id }}">{{ s.name }}{% if s.code %} ({{ s.code }}){% endif %}</option>
+                                {% endfor %}
+                                <option value="__create_new__" style="color: #818cf8; font-weight: 600;">➕ + Add Custom Course / Subject...</option>
+                            </select>
+                            <div id="quickExamSubjectPanel"
+                                style="display: none; margin-top: 8px; padding: 12px; background: rgba(99, 102, 241, 0.12); border: 1px dashed rgba(99, 102, 241, 0.4); border-radius: 8px;">
+                                <div style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 8px; font-weight: 600;">
+                                    ✨ Add Custom Course / Subject</div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <input type="text" id="quickExamSubjectName" class="form-input"
+                                        placeholder="Course Name (e.g. Data Structures)"
+                                        style="font-size: 0.85rem; padding: 6px 10px;">
+                                    <div style="display: flex; gap: 8px;">
+                                        <input type="text" id="quickExamSubjectCode" class="form-input"
+                                            placeholder="Code (e.g. CS-201)" style="font-size: 0.82rem; padding: 6px 10px; flex: 1;">
+                                        <input type="color" id="quickExamSubjectColor" class="form-input" value="#6366f1"
+                                            title="Color accent" style="width: 48px; height: 36px; padding: 2px; cursor: pointer;">
+                                        <button type="button" id="quickExamSubjectSaveBtn" class="btn btn-primary btn-sm"
+                                            style="white-space: nowrap; padding: 6px 14px; font-size: 0.82rem;">Add & Select</button>
+                                        <button type="button" id="quickExamSubjectCancelBtn" class="btn btn-secondary btn-sm"
+                                            style="padding: 6px 10px; font-size: 0.82rem;">✕</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="examDate">Date & Time *</label>
+                            <input type="datetime-local" id="examDate" name="exam_date" class="form-input" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="examRoom">Location / Room</label>
+                            <input type="text" id="examRoom" name="room_or_link" class="form-input"
+                                placeholder="e.g. Auditorium Hall 2 / Online">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="examWeight">Grade Weight (%)</label>
+                            <input type="number" id="examWeight" name="weight_percentage" class="form-input" value="25"
+                                min="0" max="100">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="examNotes">Topics / Notes</label>
+                        <textarea id="examNotes" name="notes" class="form-textarea" rows="2"
+                            placeholder="e.g. Units 1-4, formula sheet allowed..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('examModal')">Cancel</button>
+                    <button type="submit" id="examSubmitBtn" class="btn btn-primary">Schedule Exam</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Custom Timer Duration -->
+    <div class="modal-overlay" id="customTimerModal">
+        <div class="modal-container" style="max-width: 420px;">
+            <div class="modal-header">
+                <h3 class="modal-title">⏱️ Set Custom Focus Time</h3>
+                <button class="modal-close" onclick="closeModal('customTimerModal')">&times;</button>
+            </div>
+            <form id="customTimerForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label" for="customTimerMinutesInput">Focus Duration (Minutes)</label>
+                        <input type="number" id="customTimerMinutesInput" class="form-input" min="1" max="240"
+                            value="45" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('customTimerModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Apply Timer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Root -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile Navigation">
+        <button type="button" class="mobile-bottom-nav-item nav-tab-item active" data-view="dashboard" aria-label="Dashboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Home</span>
+        </button>
+        <button type="button" class="mobile-bottom-nav-item nav-tab-item" data-view="subjects" aria-label="Courses">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+            </svg>
+            <span>Courses</span>
+        </button>
+        <button type="button" class="mobile-bottom-nav-item nav-tab-item mobile-nav-timer-item" data-view="timer" aria-label="Focus Room">
+            <div class="mobile-timer-icon-bubble">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+            </div>
+            <span>Focus</span>
+        </button>
+        <button type="button" class="mobile-bottom-nav-item nav-tab-item" data-view="tasks" aria-label="Tasks">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 11l3 3L22 4"></path>
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+            </svg>
+            <span>Tasks</span>
+        </button>
+        <button type="button" class="mobile-bottom-nav-item nav-tab-item" data-view="calendar" aria-label="Schedule">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Schedule</span>
+        </button>
+    </nav>
+
+    <!-- Floating AI Assistant Launcher -->
+    <button type="button" class="floating-ai-fab" id="floatingAiFab" onclick="openModal('aiModal')" title="Ask StudyFlow AI Assistant">
+        <span style="font-size: 1.15rem;">✨</span>
+        <span>Ask AI</span>
+    </button>
+
+    <!-- Master Scripts (links all separate JS files) -->
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modules/timer.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>

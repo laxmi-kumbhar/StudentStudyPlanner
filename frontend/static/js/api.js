@@ -1,4 +1,5 @@
-const API_BASE = (window.location.hostname === '127.0.0.1' && window.location.port === '5000') 
+// Automatically use relative path when served via http/https (localhost, Render, custom domain, etc.)
+const API_BASE = (window.location.protocol.startsWith('http')) 
     ? '' 
     : 'http://127.0.0.1:5000';
 

@@ -220,11 +220,15 @@ def quick_demo_login():
     """Quick login as the pre-seeded demo user (alex_student) with full sample schedule & statistics."""
     user = query_db("SELECT * FROM users WHERE username = 'alex_student' OR id = 1 LIMIT 1", one=True)
     if not user:
-        # Fallback to any user
-        user = query_db("SELECT * FROM users LIMIT 1", one=True)
-        
-    if not user:
-        return jsonify({"success": False, "error": "No demo user found in database."}), 404
+        # Auto-create demo user if missing on clean cloud deployment
+        demo_password_hash = hash_password("password123")
+        res = execute_db("""
+            INSERT INTO users (username, email, password_hash, auth_provider, avatar_color, daily_goal_minutes)
+            VALUES ('alex_student', 'alex@study.edu', ?, 'local', '#6366f1', 180)
+        """, (demo_password_hash,))
+        user_id = res['lastrowid']
+        seed_starter_data_for_user(user_id)
+        user = {'id': user_id, 'username': 'alex_student'}
         
     session['user_id'] = user['id']
     session['username'] = user['username']

@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import secrets
 import urllib.request
@@ -179,6 +180,53 @@ def google_auth():
     return jsonify({
         "success": True,
         "message": f"Signed in with Google as {email}!",
+        "username": username,
+        "user_id": user_id
+    })
+
+@auth_bp.route('/google/direct', methods=['POST'])
+def google_direct_login():
+    """Sign in directly with user's own Google account email and name."""
+    data = request.get_json() or {}
+    email = data.get('email', '').strip().lower()
+    full_name = data.get('name', '').strip()
+    
+    if not email:
+        return jsonify({"success": False, "error": "Please enter your Gmail / Google account email."}), 400
+    if not is_valid_email(email):
+        return jsonify({"success": False, "error": "Please enter a valid Gmail address (e.g. student@gmail.com)."}), 400
+        
+    display_name = full_name or email.split('@')[0].replace('.', ' ').replace('_', ' ').title()
+    
+    # Check if user already exists with this email
+    user = query_db("SELECT * FROM users WHERE LOWER(email) = LOWER(?)", (email,), one=True)
+    if not user:
+        # Generate clean unique username
+        base_username = re.sub(r'[^a-zA-Z0-9_]', '_', email.split('@')[0])[:20] or "student"
+        username = base_username
+        counter = 1
+        while query_db("SELECT id FROM users WHERE LOWER(username) = LOWER(?)", (username,), one=True):
+            username = f"{base_username}_{counter}"
+            counter += 1
+            
+        random_pwd = hash_password(secrets.token_hex(24))
+        google_id = f"custom_google_{email}"
+        res = execute_db("""
+            INSERT INTO users (username, email, password_hash, auth_provider, google_id, avatar_color, daily_goal_minutes)
+            VALUES (?, ?, ?, 'google', ?, '#4285F4', 150)
+        """, (username, email, random_pwd, google_id))
+        user_id = res['lastrowid']
+        seed_starter_data_for_user(user_id)
+    else:
+        user_id = user['id']
+        username = user['username']
+        
+    session['user_id'] = user_id
+    session['username'] = username
+    
+    return jsonify({
+        "success": True,
+        "message": f"Welcome, {display_name}!",
         "username": username,
         "user_id": user_id
     })

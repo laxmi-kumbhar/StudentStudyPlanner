@@ -257,30 +257,46 @@ window.handleGateGoogleSignIn = async function() {
         return;
     }
 
-    // Google Sign-In with Demo / Direct Google Auth
-    const demoGoogleUser = {
-        username: 'google_student',
-        email: 'student.google@gmail.com',
-        avatar_url: 'https://lh3.googleusercontent.com/a/default-user=s96-c',
-        avatar_color: '#4285F4',
-        auth_provider: 'google'
-    };
+    // Determine email: check input or prompt user for their Gmail
+    const emailInput = document.getElementById('gateLoginEmail') || document.getElementById('gateRegEmail');
+    let email = emailInput ? emailInput.value.trim() : '';
+
+    if (!email) {
+        email = window.prompt("Enter your Google / Gmail ID to sign in (e.g. yourname@gmail.com):", "");
+        if (!email || !email.trim()) {
+            return;
+        }
+        email = email.trim();
+    }
+
+    const userName = email.split('@')[0].replace('.', ' ').replace('_', ' ').title ? email.split('@')[0] : email.split('@')[0];
 
     try {
+        if (window.showToast) window.showToast("Connecting to Google...", "info");
+        let googleUser = {
+            username: userName,
+            email: email,
+            avatar_color: '#4285F4',
+            auth_provider: 'google'
+        };
+
         if (typeof api !== 'undefined') {
             try {
-                const res = await api.post('/api/auth/google/demo', {});
+                const res = await api.post('/api/auth/google/direct', { email: email, name: userName });
                 if (res && res.success) {
-                    demoGoogleUser.username = res.username;
+                    googleUser.username = res.username || userName;
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.warn("Direct Google auth API fallback:", e);
+            }
         }
 
-        saveAuthUser(demoGoogleUser);
-        unlockPlannerWithUser(demoGoogleUser);
-        if (window.showToast) window.showToast("Signed in with Google (student.google@gmail.com)!", "success");
+        saveAuthUser(googleUser);
+        unlockPlannerWithUser(googleUser);
+        if (window.showToast) window.showToast(`Signed in with Google as ${googleUser.email}!`, "success");
     } catch (err) {
         console.error("Google sign in failed:", err);
+        if (window.showToast) window.showToast("Google sign in failed. Please try again.", "error");
     }
 };
 

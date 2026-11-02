@@ -397,6 +397,14 @@
     border-left: 4px solid var(--accent-emerald);
 }
 
+.toast.toast-info {
+    border-left: 4px solid var(--primary, #6366f1);
+}
+
+.toast.toast-warning {
+    border-left: 4px solid var(--accent-amber, #f59e0b);
+}
+
 .toast.toast-error {
     border-left: 4px solid var(--accent-rose);
 }
